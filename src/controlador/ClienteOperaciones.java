@@ -11,7 +11,7 @@ public class ClienteOperaciones {
     // Conexión con la interfaz DAO
     private static final ClienteDAO clienteDAO = new ClienteDAOImpl();
 
-    // ==========================================
+    // ===========a===============================
     // REGISTRAR CLIENTE
     // ==========================================
 
