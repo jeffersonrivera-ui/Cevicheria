@@ -190,8 +190,9 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "SELECT id_cliente FROM clientes WHERE id_cliente = ?";
 
-        try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
 
             ps.setInt(1, id);
 
