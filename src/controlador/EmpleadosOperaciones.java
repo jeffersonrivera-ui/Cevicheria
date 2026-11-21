@@ -17,14 +17,13 @@ public class EmpleadosOperaciones {
     public static void registrarEmpleado(String nombres, String apellidos, String telefono, String cargo, String direccion, String dni, String contactoEmergencia, String correo, String distrito, String provincia, String departamento, String codigoPostal, String referenciaDireccion,
             double salario, String turnoLaboral, LocalDate fechaContratacion) {
 
-        // Validar datos obligatorios
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty() || dni == null || dni.trim().isEmpty() || cargo == null || cargo.trim().isEmpty()) {
 
             System.out.println("Complete los campos obligatorios.");
             return;
         }
 
-        // Validar cargo
+
         if (!cargo.equalsIgnoreCase("MESERO")
                 && !cargo.equalsIgnoreCase("COCINERO")) {
 
@@ -32,7 +31,6 @@ public class EmpleadosOperaciones {
             return;
         }
 
-        // Validar salario
         if (!Double.isFinite(salario) || salario < 0) {
             System.out.println("El salario no puede ser negativo.");
             return;
@@ -43,7 +41,6 @@ public class EmpleadosOperaciones {
         dni = dni.trim();
         cargo = cargo.toUpperCase().trim();
 
-        // Crear objeto según el cargo
         Empleado empleado;
 
         if (cargo.equals("MESERO")) {

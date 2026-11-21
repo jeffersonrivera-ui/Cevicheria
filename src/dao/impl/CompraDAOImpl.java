@@ -125,7 +125,7 @@ public class CompraDAOImpl implements CompraDAO {
 
         String sql = "SELECT c.id_compra, c.fecha, c.total,dc.id_ingrediente, i.nombre, i.unidad, " +
                 "dc.cantidad, dc.precio_unitario FROM compras c INNER JOIN detalle_compra dc " +
-                "ON c.id_compra = dc.id_compraINNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
+                "ON c.id_compra = dc.id_compra INNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
                 "ORDER BY c.id_compra DESC";
 
         try (Connection connection = ConexionBD.getConnection();
