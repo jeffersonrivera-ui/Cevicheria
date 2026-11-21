@@ -11,12 +11,11 @@ public class ClienteOperaciones {
     // Conexión con la interfaz DAO
     private static final ClienteDAO clienteDAO = new ClienteDAOImpl();
 
-    // ===========a===============================
+    // ==========================================
     // REGISTRAR CLIENTE
     // ==========================================
 
-    public static void registrarCliente(
-            String nombres, String apellidos, String telefono) {
+    public static void registrarCliente(String nombres, String apellidos, String telefono) {
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty()) {
 
@@ -82,8 +81,7 @@ public class ClienteOperaciones {
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty()) {
 
-            System.out.println(
-                    "Los nombres y apellidos son obligatorios.");
+            System.out.println("Los nombres y apellidos son obligatorios.");
             return;
         }
 

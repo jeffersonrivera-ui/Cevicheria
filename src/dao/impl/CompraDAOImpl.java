@@ -17,8 +17,7 @@ import java.util.Map;
 public class CompraDAOImpl implements CompraDAO {
 
     @Override
-    public int registrarCompra(int idIngrediente, double cantidad,
-                               double precioUnitario) {
+    public int registrarCompra(int idIngrediente, double cantidad, double precioUnitario) {
 
         double total = cantidad * precioUnitario;
 

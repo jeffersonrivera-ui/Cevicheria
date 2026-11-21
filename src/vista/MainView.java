@@ -80,6 +80,7 @@ public class MainView {
                     break;
                 case 9:
                     menuVentas();
+                    break;
 
                 case 0:
                     System.out.println("Saliendo del sistema.");
@@ -822,7 +823,6 @@ public class MainView {
             System.out.println("No se encontró el cliente.");
             return;
         }
-
         System.out.print("Ingrese los nuevos nombres: ");
         String nombres = teclado.nextLine();
 

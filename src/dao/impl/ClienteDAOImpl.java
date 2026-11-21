@@ -58,11 +58,13 @@ public class ClienteDAOImpl implements ClienteDAO {
     @Override
     public List<Cliente> listar() {
         List<Cliente> clientes = new ArrayList<>();
+
         String sql = "SELECT * FROM clientes ORDER BY id_cliente";
 
-        try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try  {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
 
@@ -93,12 +95,13 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "SELECT * FROM clientes WHERE id_cliente = ?";
 
-        try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
 
             ps.setInt(1, id);
 
-            try (ResultSet rs = ps.executeQuery()) {
+            ResultSet rs = ps.executeQuery();
 
                 if (rs.next()) {
 
@@ -109,7 +112,7 @@ public class ClienteDAOImpl implements ClienteDAO {
                             rs.getString("apellidos")
                     );
                 }
-            }
+
 
         } catch (SQLException e) {
 
@@ -128,8 +131,9 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "UPDATE clientes SET nombres = ?, apellidos = ?, telefono = ? WHERE id_cliente = ?";
 
-        try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try  {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
 
             ps.setString(1, cliente.getNombres());
             ps.setString(2, cliente.getApellidos());
@@ -155,8 +159,9 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "DELETE FROM clientes WHERE id_cliente = ?";
 
-        try (Connection connection = ConexionBD.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try  {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
 
             ps.setInt(1, id);
 
