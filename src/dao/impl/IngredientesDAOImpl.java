@@ -74,7 +74,7 @@ public class IngredientesDAOImpl implements IngredientesDAO {
     }
 
     @Override
-    public Ingrediente buscarPorId(int id) {
+    public Ingrediente buscarPorId(Integer id) {
 
         String sql = "SELECT * FROM ingredientes WHERE id_ingrediente = ?";
 
@@ -182,7 +182,7 @@ public class IngredientesDAOImpl implements IngredientesDAO {
     }
 
     @Override
-    public boolean eliminar(int id) {
+    public boolean eliminar(Integer id) {
 
         String sqlBloquear = "SELECT id_ingrediente FROM ingredientes WHERE id_ingrediente = ? FOR UPDATE";
 

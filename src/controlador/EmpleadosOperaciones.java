@@ -12,10 +12,8 @@ import java.util.List;
 
 public class EmpleadosOperaciones {
 
-    private static final EmpleadoDAO empleadoDAO =
-            new EmpleadoDAOImpl();
+    private static final EmpleadoDAO empleadoDAO = new EmpleadoDAOImpl();
 
-    // REGISTRAR EMPLEADO
     public static void registrarEmpleado(String nombres, String apellidos, String telefono, String cargo, String direccion, String dni, String contactoEmergencia, String correo, String distrito, String provincia, String departamento, String codigoPostal, String referenciaDireccion,
             double salario, String turnoLaboral, LocalDate fechaContratacion) {
 
@@ -69,7 +67,7 @@ public class EmpleadosOperaciones {
         }
     }
 
-    // LISTAR EMPLEADOS
+
     public static void listarEmpleados() {
 
         List<Empleado> empleados = empleadoDAO.listar();
@@ -85,7 +83,102 @@ public class EmpleadosOperaciones {
         }
     }
 
-    // ACTUALIZAR ESTADO LABORAL
+
+    public static void buscarEmpleadoPorId(int id) {
+
+        Empleado empleados = empleadoDAO.buscarPorId(id);
+
+        if (empleados == null) {
+            System.out.println("No se encontró el empleado.");
+            return;
+        }
+
+        empleados.mostrarInformacion();
+    }
+
+    public static void eliminarEmpleado(int id) {
+
+        Empleado empleado = empleadoDAO.buscarPorId(id);
+
+        if (empleado == null) {
+            System.out.println("No se encontró el empleado.");
+            return;
+        }
+
+        boolean eliminado = empleadoDAO.eliminar(id);
+
+        if (eliminado) {
+            System.out.println("Empleado eliminado correctamente.");
+        } else {
+            System.out.println("No se pudo eliminar el empleado.");
+        }
+    }
+
+    public static void actualizarEmpleado (int id,
+    String nombres,
+    String apellidos,
+    String cargo,
+    String telefono,
+    String direccion,
+    String dni,
+    String contactoEmergencia,
+    String correo,
+    String distrito,
+    String provincia,
+    String departamento,
+    String codigoPostal,
+    String referenciaDireccion,
+    double salario,
+    String turnoLaboral,
+    LocalDate fechaContratacion) {
+
+        Empleado empleadoActual = empleadoDAO.buscarPorId(id);
+
+        if (empleadoActual == null) {
+            System.out.println("El empleado no existe.");
+            return;
+        }
+
+        // Validar datos obligatorios
+        if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty() || dni == null || dni.trim().isEmpty()) {
+            System.out.println("Complete los campos obligatorios.");
+            return;
+        }
+
+        // Validar salario
+        if (!Double.isFinite(salario) || salario < 0) {
+            System.out.println("El salario no puede ser negativo.");
+            return;
+        }
+
+        nombres = nombres.trim();
+        apellidos = apellidos.trim();
+        cargo = cargo.toUpperCase().trim();
+        dni = dni.trim();
+        Empleado empleado;
+
+        if (cargo.equals("MESERO")) {
+
+            empleado = new Mesero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral()
+            );
+
+        } else {
+
+            empleado = new Cocinero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral()
+            );
+        }
+
+        // Actualizar en la base de datos
+        if (empleadoDAO.actualizar(empleado)) {
+
+            System.out.println("Empleado actualizado correctamente.");
+        } else {
+
+            System.out.println("No se pudo actualizar el empleado.");
+        }
+    }
+
+
     public static void actualizarEstado(String dni, String estado) {
 
         // Validar DNI
@@ -112,6 +205,10 @@ public class EmpleadosOperaciones {
         } else {
             System.out.println("No se encontro el empleado o no se pudo actualizar.");
         }
+    }
+    public static boolean existeEmpleado(int id) {
+
+        return empleadoDAO.existe(id);
     }
 }
 

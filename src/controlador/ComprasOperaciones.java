@@ -20,14 +20,12 @@ public class ComprasOperaciones {
         }
 
         if (!Double.isFinite(cantidad) || cantidad <= 0) {
-            System.out.println(
-                    "La cantidad debe ser un número válido y mayor que cero.");
+            System.out.println("La cantidad debe ser un número válido y mayor que cero.");
             return -1;
         }
 
         if (!Double.isFinite(precioUnitario) || precioUnitario < 0) {
-            System.out.println(
-                    "El precio debe ser un número válido y no puede ser negativo.");
+            System.out.println("El precio debe ser un número válido y no puede ser negativo.");
             return -1;
         }
 

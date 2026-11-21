@@ -91,7 +91,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     // ==========================================
 
     @Override
-    public Cliente buscarPorId(int id) {
+    public Cliente buscarPorId(Integer id) {
 
         String sql = "SELECT * FROM clientes WHERE id_cliente = ?";
 
@@ -155,7 +155,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     // ==========================================
 
     @Override
-    public boolean eliminar(int id) {
+    public boolean eliminar(Integer id) {
 
         String sql = "DELETE FROM clientes WHERE id_cliente = ?";
 

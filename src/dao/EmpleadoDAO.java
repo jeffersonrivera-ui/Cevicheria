@@ -3,9 +3,9 @@ package dao;
 import java.util.List;
 import modelo.Empleado;
 
-public interface EmpleadoDAO {
+public interface EmpleadoDAO extends GenericDAO<Empleado,Integer> {
 
-    int insertar(Empleado empleado);
-    List<Empleado> listar();
     boolean actualizarEstado(String dni, String estado);
+    boolean existe(int id);
+
 }

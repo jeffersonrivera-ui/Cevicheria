@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PedidoDAOImpl implements PedidoDAO {
+public class  PedidoDAOImpl implements PedidoDAO {
 
     @Override
     public int insertar(int idCliente, int idMesero) {

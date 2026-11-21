@@ -9,8 +9,7 @@ public interface PlatoIngredienteDAO {
 
     List<PlatoIngrediente> listarPorPlato(int idPlato);
 
-    boolean actualizarCantidad(
-            int idPlato, int idIngrediente, double cantidad);
+    boolean actualizarCantidad(int idPlato, int idIngrediente, double cantidad);
 
     boolean eliminar(int idPlato, int idIngrediente);
 }

@@ -14,7 +14,18 @@ import java.util.List;
 public class DetallePedidoDAOImpl implements DetallePedidoDAO {
 
     @Override
-    public int insertar(int idPedido, int idPlato, int cantidad, String observacion) {
+    public int insertar(DetallePedido detalle) {
+
+        if (detalle == null || detalle.getPedido() == null || detalle.getPlato() == null) {
+            System.out.println("Los datos del detalle están incompletos.");
+            return -1;
+        }
+
+        // Obtener los datos desde el objeto DetallePedido
+        int idPedido = detalle.getPedido().getId();
+        int idPlato = detalle.getPlato().getId();
+        int cantidad = detalle.getCantidad();
+        String observacion = detalle.getObservacion();
 
         if (cantidad <= 0) {
             System.out.println("La cantidad debe ser mayor que cero.");
@@ -23,8 +34,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
 
         String sqlPedido = "SELECT estado FROM pedidos WHERE id_pedido = ? FOR UPDATE";
         String sqlPrecio = "SELECT precio FROM platos WHERE id_plato = ? AND activo = TRUE";
-        String sqlInsertar = "INSERT INTO detalle_pedido " +
-                "(id_pedido, id_plato, cantidad, precio, observacion) VALUES (?, ?, ?, ?, ?)";
+        String sqlInsertar = "INSERT INTO detalle_pedido (id_pedido, id_plato, cantidad, precio, observacion) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.getConnection()) {
 
@@ -119,6 +129,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
         }
     }
 
+
     @Override
     public List<DetallePedido> listarPorPedido(int idPedido) {
 
@@ -180,20 +191,17 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
     }
 
     @Override
-    public boolean actualizar(int idDetalle, int cantidad, String observacion) {
+    public boolean actualizar(DetallePedido detalle) {
 
-        if (cantidad <= 0) {
+        if (detalle.getCantidad() <= 0) {
             System.out.println("La cantidad debe ser mayor que cero.");
             return false;
         }
 
-        String sqlValidar = "SELECT p.id_pedido, p.estado " +
-                "FROM pedidos p " +
-                "INNER JOIN detalle_pedido d ON p.id_pedido = d.id_pedido " +
+        String sqlValidar = "SELECT p.id_pedido, p.estado FROM pedidos p INNER JOIN detalle_pedido d ON p.id_pedido = d.id_pedido " +
                 "WHERE d.id_detalle = ? FOR UPDATE";
 
-        String sqlActualizar = "UPDATE detalle_pedido " +
-                "SET cantidad = ?, observacion = ? WHERE id_detalle = ?";
+        String sqlActualizar = "UPDATE detalle_pedido SET cantidad = ?, observacion = ? WHERE id_detalle = ?";
 
         try (Connection connection = ConexionBD.getConnection()) {
 
@@ -204,7 +212,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
                 String estado;
 
                 try (PreparedStatement ps = connection.prepareStatement(sqlValidar)) {
-                    ps.setInt(1, idDetalle);
+                    ps.setInt(1, detalle.getId());
 
                     try (ResultSet rs = ps.executeQuery()) {
                         if (!rs.next()) {
@@ -235,9 +243,9 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
                 int filas;
 
                 try (PreparedStatement ps = connection.prepareStatement(sqlActualizar)) {
-                    ps.setInt(1, cantidad);
-                    ps.setString(2, observacion);
-                    ps.setInt(3, idDetalle);
+                    ps.setInt(1, detalle.getCantidad());
+                    ps.setString(2, detalle.getObservacion());
+                    ps.setInt(3, detalle.getId());
                     filas = ps.executeUpdate();
                 }
 

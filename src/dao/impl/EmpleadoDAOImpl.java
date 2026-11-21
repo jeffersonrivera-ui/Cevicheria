@@ -97,6 +97,86 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
         return empleados;
     }
+    @Override
+    public Empleado buscarPorId(Integer id) {
+
+        String sql = "SELECT * FROM empleados WHERE id_empleado = ?";
+
+        try  {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    return crearEmpleado(rs);
+                }
+
+        } catch (SQLException e) {
+            System.out.println("Error al buscar empleado: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean eliminar(Integer id) {
+
+        String sql = "DELETE FROM empleados WHERE id_empleado = ?";
+
+        try{
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, id);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar empleado: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean actualizar(Empleado empleado) {
+
+        String sql = "UPDATE empleados SET nombres = ?, apellidos = ?, telefono = ?, " +
+                "direccion = ?, dni = ?, contacto_emergencia = ?, correo = ?, " +
+                "distrito = ?, provincia = ?, departamento = ?, codigo_postal = ?, " +
+                "referencia_direccion = ?, salario = ?, turno_laboral = ?, " +
+                "fecha_contratacion = ? WHERE id_empleado = ?";
+
+        try {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setString(1, empleado.getNombres());
+            ps.setString(2, empleado.getApellidos());
+            ps.setString(3, empleado.getTelefono());
+            ps.setString(4, empleado.getDireccion());
+            ps.setString(5, empleado.getDni());
+            ps.setString(6, empleado.getContactoEmergencia());
+            ps.setString(7, empleado.getCorreo());
+            ps.setString(8, empleado.getDistrito());
+            ps.setString(9, empleado.getProvincia());
+            ps.setString(10, empleado.getDepartamento());
+            ps.setString(11, empleado.getCodigoPostal());
+            ps.setString(12, empleado.getReferenciaDireccion());
+            ps.setDouble(13, empleado.getSalario());
+            ps.setString(14, empleado.getTurnoLaboral());
+            ps.setDate(15, Date.valueOf(empleado.getFechaContratacion()));
+            ps.setInt(16, empleado.getId());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error al actualizar empleado: " + e.getMessage());
+            return false;
+        }
+    }
 
     // CREAR OBJETO SEGUN EL CARGO
     private Empleado crearEmpleado(ResultSet rs) throws SQLException {
@@ -164,5 +244,26 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
             System.out.println("Error al actualizar estado: " + e.getMessage());
             return false;
         }
+    }
+    @Override
+    public boolean existe(int id) {
+
+        String sql = "SELECT id_empleado FROM empleados WHERE id_empleado = ?";
+
+        try {
+            Connection connection = ConexionBD.getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al verificar empleado: " + e.getMessage());
+        }
+
+        return false;
     }
 }

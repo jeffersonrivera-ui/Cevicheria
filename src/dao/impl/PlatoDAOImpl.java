@@ -73,7 +73,7 @@ public class PlatoDAOImpl implements PlatoDAO {
     }
 
     @Override
-    public Plato buscarPorId(int id) {
+    public Plato buscarPorId(Integer id) {
 
         String sql = "SELECT id_plato, nombre, precio FROM platos WHERE id_plato = ?";
 
@@ -123,7 +123,7 @@ public class PlatoDAOImpl implements PlatoDAO {
     }
 
     @Override
-    public boolean eliminar(int id) {
+    public boolean eliminar(Integer id) {
 
         String sqlReceta = "SELECT COUNT(*) FROM plato_ingrediente WHERE id_plato = ?";
 

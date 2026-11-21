@@ -22,12 +22,16 @@ public class CompraDAOImpl implements CompraDAO {
         double total = cantidad * precioUnitario;
 
         String sqlVerificar = "SELECT id_ingrediente FROM ingredientes WHERE id_ingrediente = ? FOR UPDATE";
+        //«Buscar el ingrediente por su ID y bloquear su registro mientras se realiza la transacción».
 
         String sqlCompra = "INSERT INTO compras (total) VALUES (?)";
+        //«Insertar una nueva compra en la tabla compras, guardando su total».
 
         String sqlDetalle = "INSERT INTO detalle_compra (id_compra, id_ingrediente, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
+        //«Registrar en detalle_compra qué ingrediente se compró, en qué cantidad, a qué precio y a qué compra pertenece».
 
         String sqlStock = "UPDATE ingredientes SET stock = stock + ? WHERE id_ingrediente = ?";
+        //«Actualizar el stock del ingrediente, sumándole la cantidad que acabamos de comprar».
 
         try (Connection connection = ConexionBD.getConnection()) {
 
@@ -35,18 +39,17 @@ public class CompraDAOImpl implements CompraDAO {
 
             try {
                 // 1. Verificar y bloquear el ingrediente.
-                try (PreparedStatement verificar = connection.prepareStatement(sqlVerificar)) {
 
-                    verificar.setInt(1, idIngrediente);
+                PreparedStatement verificar = connection.prepareStatement(sqlVerificar);
+                verificar.setInt(1, idIngrediente);
 
-                    try (ResultSet resultado = verificar.executeQuery()) {
+                try (ResultSet resultado = verificar.executeQuery()) {
 
-                        if (!resultado.next()) {
+                    if (!resultado.next()) {
 
-                            connection.rollback();
-                            System.out.println("El ingrediente no existe.");
-                            return -1;
-                        }
+                        connection.rollback();
+                        System.out.println("El ingrediente no existe.");
+                        return -1;
                     }
                 }
 
@@ -121,9 +124,9 @@ public class CompraDAOImpl implements CompraDAO {
         List<Map<String, Object>> compras = new ArrayList<>();
 
         String sql = "SELECT c.id_compra, c.fecha, c.total,dc.id_ingrediente, i.nombre, i.unidad, " +
-                        "dc.cantidad, dc.precio_unitario FROM compras c INNER JOIN detalle_compra dc " +
-                        "ON c.id_compra = dc.id_compraINNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
-                        "ORDER BY c.id_compra DESC";
+                "dc.cantidad, dc.precio_unitario FROM compras c INNER JOIN detalle_compra dc " +
+                "ON c.id_compra = dc.id_compraINNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
+                "ORDER BY c.id_compra DESC";
 
         try (Connection connection = ConexionBD.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql);
@@ -157,10 +160,10 @@ public class CompraDAOImpl implements CompraDAO {
         List<Map<String, Object>> compras = new ArrayList<>();
 
         String sql = "SELECT c.id_compra, c.fecha, c.total,dc.id_ingrediente, i.nombre, i.unidad, " +
-                        "dc.cantidad, dc.precio_unitario FROM compras c " +
-                        "INNER JOIN detalle_compra dc ON c.id_compra = dc.id_compra " +
-                        "INNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
-                        "WHERE c.id_compra = ?";
+                "dc.cantidad, dc.precio_unitario FROM compras c " +
+                "INNER JOIN detalle_compra dc ON c.id_compra = dc.id_compra " +
+                "INNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
+                "WHERE c.id_compra = ?";
 
         try (Connection connection = ConexionBD.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {

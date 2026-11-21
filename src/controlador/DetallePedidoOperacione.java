@@ -4,13 +4,14 @@ package controlador;
 import dao.DetallePedidoDAO;
 import dao.impl.DetallePedidoDAOImpl;
 import modelo.DetallePedido;
+import modelo.Pedido;
+import modelo.Plato;
 
 import java.util.List;
 
 public class DetallePedidoOperacione {
 
-    private static final DetallePedidoDAO detalleDAO =
-            new DetallePedidoDAOImpl();
+    private static final DetallePedidoDAO detalleDAO = new DetallePedidoDAOImpl();
 
     // REGISTRAR DETALLE
     public static int registrarDetalle(int idPedido, int idPlato, int cantidad, String observacion) {
@@ -20,7 +21,19 @@ public class DetallePedidoOperacione {
             return -1;
         }
 
-        return detalleDAO.insertar(idPedido, idPlato, cantidad, observacion);
+        // Crear los objetos relacionados
+        Pedido pedido = PedidosOperaciones.buscarPedidoObjeto(idPedido);
+        Plato plato = PlatosOperaciones.buscarPlatoObjeto(idPlato);
+
+        if (pedido == null || plato == null) {
+            System.out.println("No se encontró el pedido o el plato.");
+            return -1;
+        }
+
+        // Crear el objeto DetallePedido
+        DetallePedido detalle = new DetallePedido(0, pedido, plato, cantidad, plato.getPrecio(), observacion);
+
+        return detalleDAO.insertar(detalle);
     }
 
     // LISTAR DETALLES
@@ -83,7 +96,17 @@ public class DetallePedidoOperacione {
             return;
         }
 
-        detalleDAO.actualizar(idDetalle, cantidad, observacion);
+        // Buscar el detalle existente
+        DetallePedido detalle = detalleDAO.buscarPorId(idDetalle);
+
+        if (detalle == null) {
+            System.out.println("No se encontró el detalle.");
+            return;
+        }
+        detalle.setCantidad(cantidad);
+        detalle.setObservacion(observacion);
+
+        detalleDAO.actualizar(detalle);
     }
 
     // ELIMINAR DETALLE

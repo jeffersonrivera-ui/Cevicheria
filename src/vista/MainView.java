@@ -324,7 +324,10 @@ public class MainView {
             System.out.println("================================");
             System.out.println("1. Registrar empleado");
             System.out.println("2. Listar empleados");
-            System.out.println("3. Actualizar estado laboral");
+            System.out.println("3. Buscar empleado por ID");
+            System.out.println("4. Modificar empleado");
+            System.out.println("5. Actualizar estado laboral");
+            System.out.println("6. Eliminar empleado");
             System.out.println("0. Volver al menu principal");
             System.out.print("Seleccione una opcion: ");
 
@@ -341,7 +344,19 @@ public class MainView {
                     break;
 
                 case 3:
+                    buscarEmpleadoView();
+                    break;
+
+                case 4:
+                    actualizarEmpleadoView();
+                    break;
+
+                case 5:
                     actualizarEstadoEmpleadoView();
+                    break;
+
+                case 6:
+                    eliminarEmpleadoView();
                     break;
 
                 case 0:
@@ -999,6 +1014,144 @@ public class MainView {
                 referenciaDireccion, salario, turnoLaboral, fechaContratacion
         );
     }
+    private void buscarEmpleadoView() {
+
+        System.out.println("========== BUSCAR EMPLEADO ==========");
+
+        System.out.print("Ingrese el ID del empleado: ");
+        int id = leerEntero();
+
+        EmpleadosOperaciones.buscarEmpleadoPorId(id);
+    }
+
+    private void eliminarEmpleadoView() {
+
+        System.out.println("========== ELIMINAR EMPLEADO ==========");
+
+        System.out.print("Ingrese el ID del empleado: ");
+        int id = leerEntero();
+
+        EmpleadosOperaciones.eliminarEmpleado(id);
+    }
+
+    private void actualizarEmpleadoView() {
+
+        System.out.println("========== MODIFICAR EMPLEADO ==========");
+
+        System.out.print("Ingrese el ID del empleado: ");
+        int id = leerEntero();
+
+        if (!EmpleadosOperaciones.existeEmpleado(id)) {
+            System.out.println("No se encontró el empleado.");
+            return;
+        }
+
+        System.out.print("Ingrese los nuevos nombres: ");
+        String nombres = teclado.nextLine();
+
+        System.out.print("Ingrese los nuevos apellidos: ");
+        String apellidos = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo cargo (Mesero/Cocinero): ");
+        String cargo = teclado.nextLine();
+
+        if (!cargo.equalsIgnoreCase("MESERO")
+                && !cargo.equalsIgnoreCase("COCINERO")) {
+            System.out.println("Cargo no válido.");
+            return;
+        }
+
+        cargo = cargo.toUpperCase();
+
+        System.out.print("Ingrese el nuevo teléfono: ");
+        String telefono = teclado.nextLine();
+
+        System.out.print("Ingrese la nueva dirección: ");
+        String direccion = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo DNI: ");
+        String dni = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo contacto de emergencia: ");
+        String contactoEmergencia = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo correo: ");
+        String correo = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo distrito: ");
+        String distrito = teclado.nextLine();
+
+        System.out.print("Ingrese la nueva provincia: ");
+        String provincia = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo departamento: ");
+        String departamento = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo código postal: ");
+        String codigoPostal = teclado.nextLine();
+
+        System.out.print("Ingrese la nueva referencia de dirección: ");
+        String referenciaDireccion = teclado.nextLine();
+
+        System.out.print("Ingrese el nuevo salario: ");
+        double salario = leerDecimal();
+
+        if (salario < 0) {
+            System.out.println("El salario no puede ser negativo.");
+            return;
+        }
+
+        System.out.println("Seleccione el nuevo turno laboral:");
+        System.out.println("1. Mañana");
+        System.out.println("2. Tarde");
+        System.out.println("3. Noche");
+        System.out.print("Seleccione una opción: ");
+
+        int opcionTurno = leerEntero();
+
+        String turnoLaboral;
+
+        switch (opcionTurno) {
+            case 1:
+                turnoLaboral = "MAÑANA";
+                break;
+
+            case 2:
+                turnoLaboral = "TARDE";
+                break;
+
+            case 3:
+                turnoLaboral = "NOCHE";
+                break;
+
+            default:
+                System.out.println("Turno no válido.");
+                return;
+        }
+
+        LocalDate fechaContratacion;
+
+        while (true) {
+
+            System.out.print("Ingrese la nueva fecha de contratación (AAAA-MM-DD): ");
+            String fecha = teclado.nextLine();
+
+            try {
+                fechaContratacion = LocalDate.parse(fecha);
+                break;
+
+            } catch (DateTimeParseException e) {
+                System.out.println("Fecha no válida. Ejemplo: 2026-11-21");
+            }
+        }
+
+        EmpleadosOperaciones.actualizarEmpleado(id, nombres,
+                apellidos, cargo, telefono, direccion, dni,
+                contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion);
+    }
+
+
+
 
     private void actualizarEstadoEmpleadoView() {
 

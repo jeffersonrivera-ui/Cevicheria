@@ -1,19 +1,9 @@
 package dao;
 
-import java.util.List;
-
 import modelo.Cliente;
 
-public interface ClienteDAO {
-    int insertar(Cliente cliente);
-
-    List<Cliente> listar();
-
-    Cliente buscarPorId(int id);
-
-    boolean actualizar(Cliente cliente);
-
-    boolean eliminar(int id);
-
+public interface ClienteDAO extends GenericDAO<Cliente,Integer>{
     boolean existe(int id);
+
+
 }

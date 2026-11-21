@@ -87,6 +87,15 @@ public class PedidosOperaciones {
             System.out.println("No se encontró el pedido.");
         }
     }
+    // BUSCAR PEDIDO Y DEVOLVER OBJETO
+    public static Pedido buscarPedidoObjeto(int idPedido) {
+
+        if (idPedido <= 0) {
+            return null;
+        }
+
+        return pedidoDAO.buscarPorId(idPedido);
+    }
 
     // ACTUALIZAR ESTADO
     public static void actualizarEstadoPedido(int id, String estado) {
