@@ -937,7 +937,7 @@ public class MainView {
         System.out.print("Ingrese el telefono: ");
         String telefono = teclado.nextLine();
 
-        System.out.print("Ingrese el cargo (Mesero/Cocinero): ");
+        System.out.print("Ingrese el cargo (Mesero/Cocinero/Administrador): ");
         String cargo = teclado.nextLine();
 
         System.out.print("Ingrese la direccion: ");
@@ -1055,12 +1055,10 @@ public class MainView {
         System.out.print("Ingrese el nuevo cargo (Mesero/Cocinero): ");
         String cargo = teclado.nextLine();
 
-        if (!cargo.equalsIgnoreCase("MESERO")
-                && !cargo.equalsIgnoreCase("COCINERO")) {
+        if (!cargo.equalsIgnoreCase("MESERO") && !cargo.equalsIgnoreCase("COCINERO")&& !cargo.equalsIgnoreCase("ADMINISTRADOR")) {
             System.out.println("Cargo no válido.");
             return;
         }
-
         cargo = cargo.toUpperCase();
 
         System.out.print("Ingrese el nuevo teléfono: ");

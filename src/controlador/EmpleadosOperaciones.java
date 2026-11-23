@@ -6,9 +6,11 @@ import dao.impl.EmpleadoDAOImpl;
 import modelo.Empleado;
 import modelo.Mesero;
 import modelo.Cocinero;
+import modelo.Administrador;
 
 import java.time.LocalDate;
 import java.util.List;
+
 
 public class EmpleadosOperaciones {
 
@@ -25,7 +27,7 @@ public class EmpleadosOperaciones {
 
 
         if (!cargo.equalsIgnoreCase("MESERO")
-                && !cargo.equalsIgnoreCase("COCINERO")) {
+                && !cargo.equalsIgnoreCase("COCINERO")&& !cargo.equalsIgnoreCase("ADMINISTRADOR")) {
 
             System.out.println("El cargo ingresado no es valido.");
             return;
@@ -47,9 +49,11 @@ public class EmpleadosOperaciones {
 
             empleado = new Mesero(0, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, "ACTIVO");
 
-        } else {
+        } else if (cargo.equals("COCINERO")){
 
             empleado = new Cocinero(0, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, "ACTIVO");
+        }else{
+            empleado = new Administrador(0, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, "ACTIVO");
         }
 
         int id = empleadoDAO.insertar(empleado);
@@ -159,10 +163,17 @@ public class EmpleadosOperaciones {
             empleado = new Mesero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral()
             );
 
-        } else {
+        }else  if (cargo.equals("COCINERO")) {
 
             empleado = new Cocinero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral()
             );
+        }else if (cargo.equals("ADMINISTRADOR")) {
+
+            empleado = new Administrador(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral());
+
+        }else {
+            System.out.println("Cargo no válido.");
+            return;
         }
 
         // Actualizar en la base de datos

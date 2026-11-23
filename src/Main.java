@@ -1,12 +1,7 @@
-import vista.MainView;
+import vista.escritorio.InicioEscritorio;
 
 public class Main {
-    public static void main(String[] args){
-        MainView vista = new MainView();
-        vista.iniciar();
-
+    public static void main(String[] args) {
+        InicioEscritorio.main(args);
     }
-
 }
-
-

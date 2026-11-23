@@ -5,6 +5,7 @@ import dao.EmpleadoDAO;
 import modelo.Empleado;
 import modelo.Mesero;
 import modelo.Cocinero;
+import modelo.Administrador;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +19,6 @@ import java.util.List;
 
 public class EmpleadoDAOImpl implements EmpleadoDAO {
 
-    // REGISTRAR EMPLEADO
     @Override
     public int insertar(Empleado empleado) {
 
@@ -70,7 +70,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
         return -1;
     }
 
-    // LISTAR EMPLEADOS
+
     @Override
     public List<Empleado> listar() {
 
@@ -187,21 +187,17 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
         String apellidos = rs.getString("apellidos");
         String telefono = rs.getString("telefono");
         String cargo = rs.getString("cargo");
-
         String direccion = rs.getString("direccion");
         String dni = rs.getString("dni");
         String contactoEmergencia = rs.getString("contacto_emergencia");
         String correo = rs.getString("correo");
-
         String distrito = rs.getString("distrito");
         String provincia = rs.getString("provincia");
         String departamento = rs.getString("departamento");
         String codigoPostal = rs.getString("codigo_postal");
         String referenciaDireccion = rs.getString("referencia_direccion");
-
         double salario = rs.getDouble("salario");
         String turnoLaboral = rs.getString("turno_laboral");
-
         Date fechaSQL = rs.getDate("fecha_contratacion");
 
         LocalDate fechaContratacion = null;
@@ -219,6 +215,10 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
         } else if (cargo != null && cargo.equalsIgnoreCase("COCINERO")) {
 
             return new Cocinero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, estadoLaboral);
+
+        }else if (cargo != null && cargo.equalsIgnoreCase("ADMINISTRADOR")) {
+
+            return new Administrador(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, estadoLaboral);
         }
 
         System.out.println("Cargo desconocido para el empleado con ID: " + id);
@@ -226,7 +226,6 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
         return null;
     }
 
-    // ACTUALIZAR ESTADO LABORAL
     @Override
     public boolean actualizarEstado(String dni, String estado) {
 
