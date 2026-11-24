@@ -15,24 +15,29 @@ public class VentanaAdministrador extends VentanaConMenu {
         };
 
         agregarGrupo("General");
-        agregarSeccion("Inicio", "⌂", new PanelInicio(null, this::mostrar, accesos));
+        agregarSeccion("Inicio", "⌂", () -> new PanelInicio(null, this::mostrar, accesos));
 
         agregarGrupo("Gestión Comercial");
-        agregarSeccion("Platos", "♨", new PanelPlatos());
-        agregarSeccion("Clientes", "☺", new PanelClientes());
-        agregarSeccion("Ingredientes", "\u2766", new PanelIngredientes());
-        agregarSeccion("Recetas", "☰", new PanelRecetas(false));
+        agregarSeccion("Platos", "♨", () -> new PanelPlatos(true));
+        agregarSeccion("Bebidas", "\u2615", () -> new PanelBebidas());
+        agregarSeccion("Clientes", "☺", () -> new PanelClientes());
+        agregarSeccion("Ingredientes", "\u2766", () -> new PanelIngredientes());
+        agregarSeccion("Proveedores", "\u2693", () -> new PanelProveedores());
+        agregarSeccion("Recetas", "☰", () -> new PanelRecetas(false));
 
         agregarGrupo("Operaciones");
-        agregarSeccion("Empleados", "☻", new PanelEmpleados());
-        agregarSeccion("Pedidos", "☷", new PanelPedidos());
-        agregarSeccion("Detalles de pedidos", "≡", new PanelDetallesPedido());
-        agregarSeccion("Exclusiones", "⊘", new PanelExclusiones());
+        agregarSeccion("Empleados", "☻", () -> new PanelEmpleados());
+        agregarSeccion("Usuarios", "\u26BF", () -> new PanelUsuarios());
+        agregarSeccion("Pedidos", "☷", () -> new PanelPedidos());
+        agregarSeccion("Detalles de pedidos", "≡", () -> new PanelDetallesPedido());
+        agregarSeccion("Detalle de bebidas", "\u2615", () -> new PanelDetalleBebida());
+        agregarSeccion("Exclusiones", "⊘", () -> new PanelExclusiones());
+        agregarSeccion("Delivery", "\u27A4", () -> new PanelDelivery());
 
         agregarGrupo("Administración Financiera");
-        agregarSeccion("Compras", "☆", new PanelCompras());
-        agregarSeccion("Pagos", "☰", new PanelPagos());
-        agregarSeccion("Ventas", "≡", new PanelVentas());
+        agregarSeccion("Compras", "☆", () -> new PanelCompras());
+        agregarSeccion("Pagos", "☰", () -> new PanelPagos());
+        agregarSeccion("Ventas", "≡", () -> new PanelVentas());
 
         terminarMenu();
     }

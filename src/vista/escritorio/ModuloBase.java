@@ -57,6 +57,34 @@ public abstract class ModuloBase extends JPanel {
         }
     }
 
+    // Boton "Actualizar" de la cabecera: vuelve a crear la ventana con los datos de la base.
+    private final JButton btnActualizarVista = Estilo.boton("\u21BB  Actualizar", Estilo.GRIS);
+    private final JPanel zonaActualizar = new JPanel(new GridBagLayout());
+
+    // Texto de confirmacion antes de actualizar (null = no pregunta).
+    protected String avisoAlActualizar() {
+        return null;
+    }
+
+    // Las ventanas que ya traen su propio boton Actualizar devuelven true.
+    protected boolean tieneBotonActualizarPropio() {
+        return false;
+    }
+
+    public void setAccionActualizar(Runnable accion) {
+        if (accion == null || tieneBotonActualizarPropio()) {
+            return;
+        }
+        btnActualizarVista.addActionListener(e -> {
+            String aviso = avisoAlActualizar();
+            if (aviso != null && !confirmar(aviso)) {
+                return;
+            }
+            accion.run();
+        });
+        zonaActualizar.setVisible(true);
+    }
+
     protected final JPanel panelDerecho = new PanelAjustable(new BorderLayout(0, 10));
     private final JPanel panelEstadisticas = new JPanel(new GridLayout(1, 0, 12, 0));
     private final JPanel zonaNorte = new JPanel(new BorderLayout(0, 14));
@@ -81,6 +109,11 @@ public abstract class ModuloBase extends JPanel {
                 Estilo.PEQUENA, Estilo.TEXTO_SUAVE));
         textos.add(Box.createVerticalGlue());
         izq.add(textos, BorderLayout.CENTER);
+
+        zonaActualizar.setOpaque(false);
+        zonaActualizar.add(btnActualizarVista);
+        zonaActualizar.setVisible(false);
+        izq.add(zonaActualizar, BorderLayout.EAST);
 
         panelEstadisticas.setOpaque(false);
         panelEstadisticas.setPreferredSize(new Dimension(700, 76));

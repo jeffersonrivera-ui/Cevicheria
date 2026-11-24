@@ -280,6 +280,11 @@ public class  PedidoDAOImpl implements PedidoDAO {
                 }
             }
 
+            // 3.1 Si se cancela, las bebidas vuelven al stock
+            if ("CANCELADO".equals(nuevoEstado) && !"CANCELADO".equals(estadoActual)) {
+                devolverStockBebidas(con, id);
+            }
+
             // 4. Actualizar estado solamente si cambió
             if (!estadoActual.equals(nuevoEstado)) {
 
@@ -319,6 +324,20 @@ public class  PedidoDAOImpl implements PedidoDAO {
             System.out.println(
                     "Error al actualizar pedido: " + e.getMessage());
             return false;
+        }
+    }
+
+    // Suma de nuevo al stock las bebidas que tenia el pedido.
+    private void devolverStockBebidas(Connection con, int idPedido) throws SQLException {
+
+        String sql = "UPDATE bebidas b SET b.stock = b.stock + (SELECT COALESCE(SUM(d.cantidad), 0) FROM detalle_bebida d "
+                + "WHERE d.id_pedido = ? AND d.id_bebida = b.id_bebida) "
+                + "WHERE b.id_bebida IN (SELECT id_bebida FROM detalle_bebida WHERE id_pedido = ?)";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idPedido);
+            ps.setInt(2, idPedido);
+            ps.executeUpdate();
         }
     }
 
@@ -521,6 +540,15 @@ public class  PedidoDAOImpl implements PedidoDAO {
                             "ON ex.id_detalle = dp.id_detalle WHERE dp.id_pedido = ?";
 
             try (PreparedStatement ps = con.prepareStatement(sqlExclusiones)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+
+            // 6.0 Devolver al stock las bebidas del pedido
+            devolverStockBebidas(con, id);
+
+            // 6.1 Eliminar bebidas del pedido
+            try (PreparedStatement ps = con.prepareStatement("DELETE FROM detalle_bebida WHERE id_pedido = ?")) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }

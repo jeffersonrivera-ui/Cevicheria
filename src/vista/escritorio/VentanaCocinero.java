@@ -143,13 +143,15 @@ public class VentanaCocinero extends JFrame {
         c.add(Estilo.etiqueta(titulo, Estilo.NEGRITA, Estilo.PRIMARIO_OSCURO));
         c.add(valor);
         t.add(c, BorderLayout.CENTER);
-        t.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                filtro = filtro.equals(estado) ? "TODOS" : estado;
-                cargar();
-            }
-        });
+        if (!estado.equals("LISTO")) {
+            t.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    filtro = filtro.equals(estado) ? "TODOS" : estado;
+                    cargar();
+                }
+            });
+        }
         return t;
     }
 
@@ -172,7 +174,8 @@ public class VentanaCocinero extends JFrame {
                 } else {
                     continue;
                 }
-                if (filtro.equals("TODOS") || filtro.equals(estado)) {
+                // Los pedidos LISTO ya no se muestran en cocina: el mesero los ve en "Pedidos listos".
+                if (!estado.equals("LISTO") && (filtro.equals("TODOS") || filtro.equals(estado))) {
                     visibles.add(p);
                 }
             }
@@ -249,6 +252,14 @@ public class VentanaCocinero extends JFrame {
             }
             for (DetallePedido d : detalles) {
                 cuerpo.add(crearLineaPlato(d));
+                cuerpo.add(Box.createVerticalStrut(4));
+            }
+            // Bebidas del pedido (informativo para cocina/barra).
+            for (modelo.DetalleBebida b : new dao.impl.DetalleBebidaDAOImpl().listarPorPedido(pedido.getId())) {
+                JLabel lb = Estilo.etiqueta("\u2615  " + b.getBebida().getNombre() + " (" + b.getCantidad() + ")",
+                        Estilo.NEGRITA, Estilo.TEXTO);
+                lb.setAlignmentX(Component.LEFT_ALIGNMENT);
+                cuerpo.add(lb);
                 cuerpo.add(Box.createVerticalStrut(4));
             }
         } catch (Exception ex) {

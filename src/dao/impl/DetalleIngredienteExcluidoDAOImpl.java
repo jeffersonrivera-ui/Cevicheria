@@ -137,7 +137,7 @@ public class DetalleIngredienteExcluidoDAOImpl implements DetalleIngredienteExcl
             return ingredientes;
         }
 
-        String sql = "SELECT i.id_ingrediente, i.nombre, i.unidad, i.stock FROM detalle_ingrediente_excluido de NNER JOIN ingredientes i " +
+        String sql = "SELECT i.id_ingrediente, i.nombre, i.unidad, i.stock FROM detalle_ingrediente_excluido de INNER JOIN ingredientes i " +
                         "ON de.id_ingrediente = i.id_ingrediente WHERE de.id_detalle = ? ORDER BY i.nombre";
 
         try (Connection connection = ConexionBD.getConnection();

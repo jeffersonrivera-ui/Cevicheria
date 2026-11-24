@@ -26,12 +26,15 @@ public class PanelClientes extends ModuloBase {
 
     private final JTextField txtBuscar = Estilo.campo();
     private final TablaPaginada tabla = new TablaPaginada(
-            new String[]{"ID", "Nombres y Apellidos", "Teléfono"}, -1, true);
+            new String[]{"ID", "Cliente", "Teléfono", "Dirección", "Referencia", "Distrito"}, -1, true);
 
     private final JTextField txtId = Estilo.campo();
     private final JTextField txtNombres = Estilo.campo();
     private final JTextField txtApellidos = Estilo.campo();
     private final JTextField txtTelefono = Estilo.campo();
+    private final JTextField txtDireccion = Estilo.campo();
+    private final JTextField txtReferencia = Estilo.campo();
+    private final JTextField txtDistrito = Estilo.campo();
 
     public PanelClientes() {
         super("Clientes", "Administra los clientes de la cevichería", "\u263A", Estilo.PRIMARIO, true);
@@ -42,9 +45,10 @@ public class PanelClientes extends ModuloBase {
 
         // Izquierda: busqueda + tabla
         JButton btnBuscar = Estilo.boton("Buscar", Estilo.PRIMARIO);
-        txtBuscar.setToolTipText("ID, nombre o apellido");
-        panelIzquierdo.add(barraBusqueda("Buscar por ID, nombre o apellido:", txtBuscar, null, btnBuscar),
+        txtBuscar.setToolTipText("ID, nombre, apellido, teléfono, distrito o dirección");
+        panelIzquierdo.add(barraBusqueda("Buscar por ID, nombre, teléfono o distrito:", txtBuscar, null, btnBuscar),
                 BorderLayout.NORTH);
+        tabla.setAnchos(28, 115, 85, 115, 100, 70, 70);
         panelIzquierdo.add(tabla, BorderLayout.CENTER);
 
         // Derecha: formulario
@@ -56,6 +60,9 @@ public class PanelClientes extends ModuloBase {
         f.agregar("Nombres:", true, txtNombres);
         f.agregar("Apellidos:", true, txtApellidos);
         f.agregar("Teléfono:", true, txtTelefono);
+        f.agregar("Dirección:", false, txtDireccion);
+        f.agregar("Referencia:", false, txtReferencia);
+        f.agregar("Distrito:", false, txtDistrito);
 
         JButton btnRegistrar = Estilo.boton("Registrar", Estilo.EXITO);
         JButton btnActualizar = Estilo.boton("Actualizar", Estilo.PRIMARIO);
@@ -68,14 +75,21 @@ public class PanelClientes extends ModuloBase {
         JPanel avisos = new JPanel();
         avisos.setOpaque(false);
         avisos.setLayout(new BoxLayout(avisos, BoxLayout.Y_AXIS));
-        avisos.add(Estilo.aviso("Selecciona un cliente de la tabla para editarlo o eliminarlo.", "info"));
+        avisos.add(Estilo.aviso("Selecciona un cliente de la tabla para editarlo o eliminarlo. La dirección, referencia y distrito se usan en las entregas a domicilio.", "info", 210));
         avisos.add(Box.createVerticalStrut(8));
-        avisos.add(Estilo.aviso("No se puede eliminar un cliente que ya tiene pedidos registrados.", "alerta"));
+        avisos.add(Estilo.aviso("No se puede eliminar un cliente que ya tiene pedidos registrados.", "alerta", 210));
         centro.add(avisos, BorderLayout.CENTER);
 
         panelDerecho.add(tituloDePanel("\u263A", "Registro / Actualización de Cliente"), BorderLayout.NORTH);
         panelDerecho.add(centro, BorderLayout.CENTER);
-        panelDerecho.add(filaBotones(btnRegistrar, btnActualizar, btnEliminar, btnLimpiar), BorderLayout.SOUTH);
+        setAnchoDerecho(340);
+        JPanel botones = new JPanel(new GridLayout(2, 2, 10, 10));
+        botones.setOpaque(false);
+        botones.add(btnRegistrar);
+        botones.add(btnActualizar);
+        botones.add(btnEliminar);
+        botones.add(btnLimpiar);
+        panelDerecho.add(botones, BorderLayout.SOUTH);
 
         // Eventos
         tabla.setEscucha(new TablaPaginada.Escucha() {
@@ -95,7 +109,9 @@ public class PanelClientes extends ModuloBase {
                 Cliente c = clienteDAO.buscarPorId(((Number) fila[0]).intValue());
                 if (c != null) {
                     aviso("Cliente N.° " + c.getId() + "\nNombres: " + c.getNombres()
-                            + "\nApellidos: " + c.getApellidos() + "\nTeléfono: " + c.getTelefono());
+                            + "\nApellidos: " + c.getApellidos() + "\nTeléfono: " + c.getTelefono()
+                            + "\nDirección: " + nz(c.getDireccion()) + "\nReferencia: " + nz(c.getReferencia())
+                            + "\nDistrito: " + nz(c.getDistrito()));
                 }
             }
         });
@@ -106,6 +122,13 @@ public class PanelClientes extends ModuloBase {
         btnEliminar.addActionListener(e -> eliminarCliente());
         btnLimpiar.addActionListener(e -> limpiar());
 
+
+        // Al volver a esta sección se vuelve a leer la base (por ejemplo, para ver lo registrado por el mesero).
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                cargar();
+            }
+        });
         cargar();
     }
 
@@ -130,8 +153,11 @@ public class PanelClientes extends ModuloBase {
                         con++;
                     }
                     String completo = (c.getNombres() + " " + c.getApellidos()).toLowerCase();
-                    if (filtro.isEmpty() || String.valueOf(c.getId()).equals(filtro) || completo.contains(filtro)) {
-                        filas.add(new Object[]{c.getId(), c.getNombres() + " " + c.getApellidos(), c.getTelefono()});
+                    String extra = (nz(c.getTelefono()) + " " + nz(c.getDistrito()) + " " + nz(c.getDireccion())).toLowerCase();
+                    if (filtro.isEmpty() || String.valueOf(c.getId()).equals(filtro) || completo.contains(filtro)
+                            || extra.contains(filtro)) {
+                        filas.add(new Object[]{c.getId(), c.getNombres() + " " + c.getApellidos(), c.getTelefono(),
+                                nz(c.getDireccion()), nz(c.getReferencia()), nz(c.getDistrito())});
                     }
                 }
             }
@@ -153,6 +179,13 @@ public class PanelClientes extends ModuloBase {
         txtNombres.setText(c.getNombres());
         txtApellidos.setText(c.getApellidos());
         txtTelefono.setText(c.getTelefono());
+        txtDireccion.setText(nz(c.getDireccion()));
+        txtReferencia.setText(nz(c.getReferencia()));
+        txtDistrito.setText(nz(c.getDistrito()));
+    }
+
+    private static String nz(String s) {
+        return s == null ? "" : s;
     }
 
     private boolean validar() {
@@ -165,6 +198,14 @@ public class PanelClientes extends ModuloBase {
             advertencia("El teléfono solo puede tener números (de 6 a 15 dígitos).");
             return false;
         }
+        if (txtDireccion.getText().trim().length() > 200 || txtReferencia.getText().trim().length() > 200) {
+            advertencia("La dirección y la referencia admiten hasta 200 caracteres.");
+            return false;
+        }
+        if (txtDistrito.getText().trim().length() > 80) {
+            advertencia("El distrito admite hasta 80 caracteres.");
+            return false;
+        }
         return true;
     }
 
@@ -174,7 +215,8 @@ public class PanelClientes extends ModuloBase {
         }
         int antes = clienteDAO.listar().size();
         ClienteOperaciones.registrarCliente(txtNombres.getText().trim(),
-                txtApellidos.getText().trim(), txtTelefono.getText().trim());
+                txtApellidos.getText().trim(), txtTelefono.getText().trim(),
+                txtDireccion.getText().trim(), txtReferencia.getText().trim(), txtDistrito.getText().trim());
         int despues = clienteDAO.listar().size();
         if (despues > antes) {
             aviso("Cliente registrado correctamente.");
@@ -195,10 +237,14 @@ public class PanelClientes extends ModuloBase {
         }
         int id = Integer.parseInt(txtId.getText());
         ClienteOperaciones.actualizarCliente(id, txtNombres.getText().trim(),
-                txtApellidos.getText().trim(), txtTelefono.getText().trim());
+                txtApellidos.getText().trim(), txtTelefono.getText().trim(),
+                txtDireccion.getText().trim(), txtReferencia.getText().trim(), txtDistrito.getText().trim());
         Cliente c = clienteDAO.buscarPorId(id);
         if (c != null && c.getNombres().equals(txtNombres.getText().trim())
-                && c.getApellidos().equals(txtApellidos.getText().trim())) {
+                && c.getApellidos().equals(txtApellidos.getText().trim())
+                && nz(c.getDireccion()).equals(txtDireccion.getText().trim())
+                && nz(c.getReferencia()).equals(txtReferencia.getText().trim())
+                && nz(c.getDistrito()).equals(txtDistrito.getText().trim())) {
             aviso("Cliente actualizado correctamente.");
             cargar();
         } else {
@@ -230,6 +276,9 @@ public class PanelClientes extends ModuloBase {
         txtNombres.setText("");
         txtApellidos.setText("");
         txtTelefono.setText("");
+        txtDireccion.setText("");
+        txtReferencia.setText("");
+        txtDistrito.setText("");
         tabla.limpiarSeleccion();
     }
 }

@@ -84,6 +84,96 @@ public class PanelDetallesPedido extends ModuloBase {
     private final JLabel lblSubtotal = Estilo.etiqueta("0.00", Estilo.SUBTITULO, new Color(0x15803D));
     private double precioActual = 0;
 
+    // Platos adicionales del formulario (botón "+ Agregar otro plato").
+    private final JPanel panelExtras = new JPanel();
+    private final List<FilaPlato> extras = new ArrayList<>();
+    private JButton btnMasPlatos;
+
+    // Una fila extra: plato + cantidad + precio unitario (igual que la primera).
+    private final class FilaPlato extends JPanel {
+        final JComboBox<Opcion> cmb = new JComboBox<>();
+        final JSpinner spn = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
+        final JTextField precio = Estilo.campo();
+
+        FilaPlato(int numero) {
+            super(new GridBagLayout());
+            setOpaque(false);
+
+            for (int i = 0; i < cmbPlato.getItemCount(); i++) {
+                cmb.addItem(cmbPlato.getItemAt(i));
+            }
+            cmb.setFont(Estilo.FUENTE);
+            cmb.setPreferredSize(new Dimension(120, 36));
+            spn.setFont(Estilo.FUENTE);
+            spn.setPreferredSize(new Dimension(100, 36));
+            precio.setEditable(false);
+            precio.setBackground(new Color(0xEEF2F8));
+            precio.setText("0.00");
+
+            JButton quitar = new JButton("\u2716  Quitar");
+            quitar.setFont(Estilo.PEQUENA_NEGRITA);
+            quitar.setForeground(Estilo.PELIGRO);
+            quitar.setContentAreaFilled(false);
+            quitar.setBorderPainted(false);
+            quitar.setFocusPainted(false);
+            quitar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            quitar.addActionListener(e -> quitarFila(this));
+
+            JPanel cab = new JPanel(new BorderLayout());
+            cab.setOpaque(false);
+            cab.add(Estilo.etiquetaCampo("Plato " + numero + ":", true), BorderLayout.WEST);
+            cab.add(quitar, BorderLayout.EAST);
+
+            GridBagConstraints g = new GridBagConstraints();
+            g.fill = GridBagConstraints.HORIZONTAL;
+            g.weightx = 1;
+            g.gridx = 0;
+            g.gridy = 0;
+            g.gridwidth = 2;
+            g.insets = new Insets(0, 0, 4, 0);
+            add(cab, g);
+            g.gridy = 1;
+            g.insets = new Insets(0, 0, 8, 0);
+            add(cmb, g);
+            g.gridy = 2;
+            g.gridwidth = 1;
+            g.insets = new Insets(0, 0, 8, 6);
+            add(conEtiqueta("Cantidad:", true, spn), g);
+            g.gridx = 1;
+            g.insets = new Insets(0, 6, 8, 0);
+            add(conEtiqueta("Precio unitario (S/):", false, precio), g);
+
+            cmb.addActionListener(e -> {
+                actualizarPrecio();
+                refrescarPrecioYSubtotal();
+            });
+            spn.addChangeListener(e -> refrescarPrecioYSubtotal());
+        }
+
+        int idPlato() {
+            Opcion o = (Opcion) cmb.getSelectedItem();
+            return o == null ? 0 : o.id;
+        }
+
+        int cantidad() {
+            return ((Number) spn.getValue()).intValue();
+        }
+
+        double precioUnitario() {
+            Plato p = platoDeLista(idPlato());
+            return p == null ? 0 : p.getPrecio();
+        }
+
+        void actualizarPrecio() {
+            precio.setText(String.format(java.util.Locale.US, "%.2f", precioUnitario()));
+        }
+
+        @Override
+        public Dimension getMaximumSize() {
+            return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+        }
+    }
+
     public PanelDetallesPedido() {
         this(null);
     }
@@ -180,7 +270,13 @@ public class PanelDetallesPedido extends ModuloBase {
         spObs.setBorder(BorderFactory.createLineBorder(new Color(0xCBD5E8)));
         spObs.setPreferredSize(new Dimension(120, 70));
 
-        JPanel form = new JPanel(new GridBagLayout());
+        // El alto se calcula siempre de nuevo: crece al agregar más platos con el botón "+".
+        JPanel form = new JPanel(new GridBagLayout()) {
+            @Override
+            public Dimension getMaximumSize() {
+                return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+            }
+        };
         form.setOpaque(false);
         GridBagConstraints g = new GridBagConstraints();
         g.fill = GridBagConstraints.HORIZONTAL;
@@ -203,9 +299,20 @@ public class PanelDetallesPedido extends ModuloBase {
         g.gridx = 0;
         g.gridy = 3;
         g.gridwidth = 2;
+        panelExtras.setOpaque(false);
+        panelExtras.setLayout(new BoxLayout(panelExtras, BoxLayout.Y_AXIS));
+        g.insets = new Insets(0, 0, 0, 0);
+        form.add(panelExtras, g);
+        g.gridy = 4;
+        g.insets = new Insets(0, 0, 8, 0);
+        btnMasPlatos = Estilo.boton("+  Agregar otro plato", Estilo.PRIMARIO);
+        btnMasPlatos.setFont(Estilo.PEQUENA_NEGRITA);
+        btnMasPlatos.setPreferredSize(new Dimension(120, 34));
+        form.add(btnMasPlatos, g);
+        g.gridy = 5;
         g.insets = new Insets(0, 0, 2, 0);
         form.add(conEtiqueta("Observación:", false, spObs), g);
-        g.gridy = 4;
+        g.gridy = 6;
         g.insets = new Insets(0, 0, 8, 0);
         JPanel contador = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         contador.setOpaque(false);
@@ -241,7 +348,8 @@ public class PanelDetallesPedido extends ModuloBase {
         col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS));
         col.add(alinear(tituloDePanel("+", "Agregar / Actualizar detalle")));
         col.add(Box.createVerticalStrut(10));
-        col.add(alinear(form));
+        form.setAlignmentX(Component.LEFT_ALIGNMENT);
+        col.add(form);
         col.add(alinear(barraSubtotal));
         col.add(Box.createVerticalStrut(10));
         JPanel botones = new JPanel(new GridLayout(2, 2, 10, 8));
@@ -265,6 +373,7 @@ public class PanelDetallesPedido extends ModuloBase {
         btnBuscar.addActionListener(e -> buscarPedido());
         txtBuscar.addActionListener(e -> buscarPedido());
         txtFechaFiltro.addActionListener(e -> buscarPedido());
+        btnMasPlatos.addActionListener(e -> agregarFila());
         btnAgregar.addActionListener(e -> agregar());
         btnActualizar.addActionListener(e -> actualizar());
         btnEliminar.addActionListener(e -> eliminar());
@@ -300,6 +409,23 @@ public class PanelDetallesPedido extends ModuloBase {
         cargarPlatos();
         cargarPedidos();
         mostrarPedido(null);
+
+        // Al volver a esta sección se leen de nuevo platos disponibles y pedidos.
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                Opcion previo = (Opcion) cmbPlato.getSelectedItem();
+                cargarPlatos();
+                if (previo != null && previo.id > 0) {
+                    for (int k = 0; k < cmbPlato.getItemCount(); k++) {
+                        if (cmbPlato.getItemAt(k).id == previo.id) {
+                            cmbPlato.setSelectedIndex(k);
+                            break;
+                        }
+                    }
+                }
+                cargarPedidos();
+            }
+        });
     }
 
     // ---------- Construcción ----------
@@ -397,6 +523,7 @@ public class PanelDetallesPedido extends ModuloBase {
                             for (DetallePedido d : ds) {
                                 total += d.calcularSubtotal();
                             }
+                            total += controlador.DetalleBebidaOperaciones.calcularTotalBebidas(p.getId());
                         }
                     }
                 }
@@ -535,7 +662,9 @@ public class PanelDetallesPedido extends ModuloBase {
             total += d.calcularSubtotal();
         }
         tabla.setFilas(filas);
-        lblTotalPedido.setText(Estilo.soles(total));
+        double bebidas = controlador.DetalleBebidaOperaciones.calcularTotalBebidas(pedidoSel.getId());
+        lblTotalPedido.setText(Estilo.soles(total + bebidas));
+        lblTotalPedido.setToolTipText(bebidas > 0 ? "Incluye bebidas por " + Estilo.soles(bebidas) : null);
     }
 
     // ---------- Formulario ----------
@@ -552,10 +681,55 @@ public class PanelDetallesPedido extends ModuloBase {
     private void refrescarPrecioYSubtotal() {
         int cant = ((Number) spnCantidad.getValue()).intValue();
         txtPrecio.setText(String.format(java.util.Locale.US, "%.2f", precioActual));
-        lblSubtotal.setText(String.format(java.util.Locale.US, "%.2f", precioActual * cant));
+        double total = precioActual * cant;
+        for (FilaPlato f : extras) {
+            f.actualizarPrecio();
+            total += f.precioUnitario() * f.cantidad();
+        }
+        lblSubtotal.setText(String.format(java.util.Locale.US, "%.2f", total));
+    }
+
+    private void agregarFila() {
+        if (idDetalleSel != 0) {
+            advertencia("Hay un detalle seleccionado para editar. Pulse Limpiar para agregar platos nuevos.");
+            return;
+        }
+        if (extras.size() >= 9) {
+            advertencia("Puede agregar hasta 10 platos a la vez.");
+            return;
+        }
+        FilaPlato f = new FilaPlato(extras.size() + 2);
+        extras.add(f);
+        panelExtras.add(f);
+        refrescarFilas();
+    }
+
+    private void quitarFila(FilaPlato f) {
+        extras.remove(f);
+        panelExtras.remove(f);
+        refrescarFilas();
+    }
+
+    private void quitarFilas() {
+        extras.clear();
+        panelExtras.removeAll();
+        refrescarFilas();
+    }
+
+    private void refrescarFilas() {
+        panelExtras.revalidate();
+        panelExtras.repaint();
+        refrescarPrecioYSubtotal();
+        Container c = panelExtras.getParent();
+        while (c != null) {
+            c.revalidate();
+            c = c.getParent();
+        }
     }
 
     private void limpiarFormulario() {
+        quitarFilas();
+        btnMasPlatos.setEnabled(true);
         idDetalleSel = 0;
         cmbPlato.setEnabled(true);
         cmbPlato.setSelectedIndex(0);
@@ -571,6 +745,8 @@ public class PanelDetallesPedido extends ModuloBase {
         if (d == null) {
             return;
         }
+        quitarFilas();
+        btnMasPlatos.setEnabled(false);
         idDetalleSel = idDetalle;
         // El plato de un detalle existente no se cambia: se muestra bloqueado.
         int idPlato = d.getPlato().getId();
@@ -635,29 +811,60 @@ public class PanelDetallesPedido extends ModuloBase {
         if (!pedidoEditable()) {
             return;
         }
-        Opcion plato = (Opcion) cmbPlato.getSelectedItem();
         if (idDetalleSel != 0) {
             advertencia("Hay un detalle seleccionado para editar. Pulse Limpiar para agregar un plato nuevo.");
             return;
         }
+
+        // Lista de platos a agregar: el primero del formulario y los de "+ Agregar otro plato".
+        List<int[]> lista = new ArrayList<>();
+        Opcion plato = (Opcion) cmbPlato.getSelectedItem();
         if (plato == null || plato.id <= 0) {
-            advertencia("Seleccione un plato.");
+            advertencia("Seleccione el plato.");
             return;
         }
-        int cantidad = cantidadElegida();
-        if (cantidad <= 0) {
+        if (cantidadElegida() <= 0) {
             advertencia("La cantidad debe ser mayor que cero.");
             return;
         }
+        lista.add(new int[]{plato.id, cantidadElegida()});
+        for (int i = 0; i < extras.size(); i++) {
+            FilaPlato f = extras.get(i);
+            if (f.idPlato() <= 0) {
+                advertencia("Seleccione el plato " + (i + 2) + " o quítelo de la lista.");
+                return;
+            }
+            lista.add(new int[]{f.idPlato(), f.cantidad()});
+        }
+
         int idPedido = pedidoSel.getId();
+        String obs = txtObservacion.getText().trim();
+        int agregados = 0;
+        List<Integer> ids = new ArrayList<>();
+        StringBuilder fallidos = new StringBuilder();
 
-        int idDetalle = DetallePedidoOperacione.registrarDetalle(idPedido, plato.id, cantidad,
-                txtObservacion.getText().trim());
+        for (int[] item : lista) {
+            int idDetalle = DetallePedidoOperacione.registrarDetalle(idPedido, item[0], item[1], obs);
+            if (idDetalle > 0 && detalleDAO.buscarPorId(idDetalle) != null) {
+                agregados++;
+                ids.add(idDetalle);
+            } else {
+                Plato p = platoDeLista(item[0]);
+                fallidos.append("\n- ").append(p == null ? "Plato N.° " + item[0] : p.getNombre());
+            }
+        }
 
-        if (idDetalle > 0 && detalleDAO.buscarPorId(idDetalle) != null) {
-            aviso("Plato agregado correctamente al pedido N.° " + idPedido + ".\n"
+        if (agregados > 0) {
+            String msg = agregados == 1
+                    ? "Plato agregado correctamente al pedido N.° " + idPedido + ".\n"
                     + "Si el cliente no quiere algún ingrediente, regístrelo en \"Exclusiones\" (detalle N.° "
-                    + idDetalle + ").");
+                    + ids.get(0) + ")."
+                    : agregados + " platos agregados correctamente al pedido N.° " + idPedido + ".\n"
+                    + "Si el cliente no quiere algún ingrediente, regístrelo en \"Exclusiones\".";
+            if (fallidos.length() > 0) {
+                msg += "\n\nNo se pudieron agregar:" + fallidos;
+            }
+            aviso(msg);
             limpiarFormulario();
             cargarDetalles();
             calcularEstadisticas();

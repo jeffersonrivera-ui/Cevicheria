@@ -21,9 +21,9 @@ public class VentaDAOImpl implements VentaDAO {
 
         String sqlPedido = "SELECT estado FROM pedidos WHERE id_pedido = ? FOR UPDATE";
 
-        String sqlPago = "SELECT COALESCE(SUM(monto), 0) AS total_pagado FROM pagos WHERE id_pedido = ? AND estado = 'Pagado'";
+        String sqlPago = "SELECT COALESCE(SUM(monto), 0) AS total_pagado FROM pagos WHERE id_pedido = ? AND estado IN ('Pagado', 'Adelanto')";
 
-        String sqlTotal = "SELECT COALESCE(SUM(cantidad * precio), 0) AS total FROM detalle_pedido WHERE id_pedido = ?";
+        String sqlTotal = "SELECT COALESCE(SUM(t.cantidad * t.precio), 0) AS total FROM (SELECT id_pedido, cantidad, precio FROM detalle_pedido UNION ALL SELECT id_pedido, cantidad, precio FROM detalle_bebida) t WHERE t.id_pedido = ?";
 
         String sqlVerificar = "SELECT id_venta FROM ventas WHERE id_pedido = ?";
 

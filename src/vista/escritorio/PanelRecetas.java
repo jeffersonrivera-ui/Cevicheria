@@ -59,6 +59,91 @@ public class PanelRecetas extends ModuloBase {
 
     private boolean cargando = false;
 
+    // Ingredientes adicionales (botón "+ Agregar otro ingrediente").
+    private final JPanel panelExtras = new JPanel() {
+        @Override
+        public Dimension getMaximumSize() {
+            return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+        }
+    };
+    private final List<FilaExtra> extras = new ArrayList<>();
+
+    private final class FilaExtra extends JPanel {
+        final JComboBox<Item> cmb = new JComboBox<>();
+        final JSpinner spn = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 100000.0, 0.05));
+        final JLabel info = Estilo.etiqueta(" ", Estilo.PEQUENA, Estilo.TEXTO_SUAVE);
+
+        FilaExtra(int numero) {
+            super(new GridBagLayout());
+            setOpaque(false);
+            for (int i = 0; i < cmbIngrediente.getItemCount(); i++) {
+                cmb.addItem(cmbIngrediente.getItemAt(i));
+            }
+            cmb.setFont(Estilo.FUENTE);
+            cmb.setPreferredSize(new Dimension(120, 36));
+            spn.setFont(Estilo.FUENTE);
+            spn.setPreferredSize(new Dimension(120, 36));
+            spn.setEditor(new JSpinner.NumberEditor(spn, "0.00"));
+
+            JButton quitar = new JButton("\u2716  Quitar");
+            quitar.setFont(Estilo.PEQUENA_NEGRITA);
+            quitar.setForeground(Estilo.PELIGRO);
+            quitar.setContentAreaFilled(false);
+            quitar.setBorderPainted(false);
+            quitar.setFocusPainted(false);
+            quitar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            quitar.addActionListener(e -> quitarFila(this));
+
+            JPanel cab = new JPanel(new BorderLayout());
+            cab.setOpaque(false);
+            cab.add(Estilo.etiquetaCampo("Ingrediente " + numero + ":", true), BorderLayout.WEST);
+            cab.add(quitar, BorderLayout.EAST);
+
+            GridBagConstraints g = new GridBagConstraints();
+            g.fill = GridBagConstraints.HORIZONTAL;
+            g.weightx = 1;
+            g.gridx = 0;
+            g.gridy = 0;
+            g.insets = new Insets(0, 0, 4, 0);
+            add(cab, g);
+            g.gridy = 1;
+            g.insets = new Insets(0, 0, 2, 0);
+            add(cmb, g);
+            g.gridy = 2;
+            g.insets = new Insets(0, 0, 6, 0);
+            add(info, g);
+            g.gridy = 3;
+            g.insets = new Insets(0, 0, 4, 0);
+            JPanel cant = new JPanel(new BorderLayout(12, 0));
+            cant.setOpaque(false);
+            cant.add(Estilo.etiquetaCampo("Cantidad necesaria:", true), BorderLayout.WEST);
+            cant.add(spn, BorderLayout.CENTER);
+            add(cant, g);
+            g.gridy = 4;
+            add(Box.createVerticalStrut(8), g);
+
+            cmb.addActionListener(e -> {
+                Item it = (Item) cmb.getSelectedItem();
+                Ingrediente ing = it == null || it.id <= 0 ? null : ingredienteDAO.buscarPorId(it.id);
+                info.setText(ing == null ? " " : "Unidad: " + ing.getUnidad() + "   |   Stock: "
+                        + formato(ing.getStock()) + " " + ing.getUnidad());
+            });
+        }
+
+        int idIngrediente() {
+            Item it = (Item) cmb.getSelectedItem();
+            return it == null ? 0 : it.id;
+        }
+
+        double cantidad() {
+            try {
+                spn.commitEdit();
+            } catch (java.text.ParseException ignorada) {
+            }
+            return ((Number) spn.getValue()).doubleValue();
+        }
+    }
+
     public PanelRecetas(boolean soloConsulta) {
         super("Recetas",
                 soloConsulta ? "Consulta los ingredientes que lleva cada plato"
@@ -139,6 +224,16 @@ public class PanelRecetas extends ModuloBase {
         anadir(col, crearCajaUnidadStock());
 
         if (!soloConsulta) {
+            panelExtras.setOpaque(false);
+            panelExtras.setLayout(new BoxLayout(panelExtras, BoxLayout.Y_AXIS));
+            panelExtras.setAlignmentX(Component.LEFT_ALIGNMENT);
+            col.add(panelExtras);
+            JButton btnMas = Estilo.boton("+  Agregar otro ingrediente", Estilo.PRIMARIO);
+            btnMas.setFont(Estilo.PEQUENA_NEGRITA);
+            btnMas.setPreferredSize(new Dimension(120, 34));
+            btnMas.addActionListener(e -> agregarFila());
+            anadir(col, btnMas);
+
             JButton btnAgregar = Estilo.boton("<html><center>Agregar<br>ingrediente</center></html>", Estilo.EXITO);
             JButton btnActualizar = Estilo.boton("<html><center>Actualizar<br>cantidad</center></html>", Estilo.PRIMARIO);
             JButton btnEliminar = Estilo.boton("<html><center>Eliminar<br>de receta</center></html>", Estilo.PELIGRO);
@@ -270,6 +365,7 @@ public class PanelRecetas extends ModuloBase {
     }
 
     private void recargarCombos() {
+        quitarFilas();
         cargando = true;
         try {
             int platoPrevio = idPlatoActual();
@@ -406,31 +502,95 @@ public class PanelRecetas extends ModuloBase {
 
     // ---------- Acciones ----------
 
+    private void agregarFila() {
+        if (extras.size() >= 14) {
+            advertencia("Puede agregar hasta 15 ingredientes a la vez.");
+            return;
+        }
+        FilaExtra f = new FilaExtra(extras.size() + 2);
+        extras.add(f);
+        panelExtras.add(f);
+        refrescarFilas();
+    }
+
+    private void quitarFila(FilaExtra f) {
+        extras.remove(f);
+        panelExtras.remove(f);
+        refrescarFilas();
+    }
+
+    private void quitarFilas() {
+        extras.clear();
+        panelExtras.removeAll();
+        refrescarFilas();
+    }
+
+    private void refrescarFilas() {
+        panelExtras.revalidate();
+        panelExtras.repaint();
+        Container c = panelExtras.getParent();
+        while (c != null) {
+            c.revalidate();
+            c = c.getParent();
+        }
+    }
+
     private void agregar() {
         if (!validar(true)) {
             return;
         }
-        double cantidad = cantidadElegida();
-        if (cantidad <= 0) {
-            advertencia("La cantidad debe ser mayor que cero.");
-            return;
-        }
         int idPlato = idPlatoActual();
-        int idIng = idIngredienteActual();
-        if (buscarEnReceta(idPlato, idIng) != null) {
-            advertencia("Ese ingrediente ya pertenece a la receta.\nUse \"Actualizar cantidad\" para cambiarla.");
-            return;
+
+        // Lista: el ingrediente del formulario + los adicionales.
+        List<int[]> ids = new ArrayList<>();
+        List<Double> cantidades = new ArrayList<>();
+        ids.add(new int[]{idIngredienteActual()});
+        cantidades.add(cantidadElegida());
+        for (int k = 0; k < extras.size(); k++) {
+            FilaExtra f = extras.get(k);
+            if (f.idIngrediente() <= 0) {
+                advertencia("Seleccione el ingrediente " + (k + 2) + " o quítelo.");
+                return;
+            }
+            ids.add(new int[]{f.idIngrediente()});
+            cantidades.add(f.cantidad());
         }
 
-        PlatoIngredienteOperaciones.registrarIngredientePlato(idPlato, idIng, cantidad);
+        java.util.Set<Integer> vistos = new java.util.HashSet<>();
+        for (int k = 0; k < ids.size(); k++) {
+            int idIng = ids.get(k)[0];
+            if (cantidades.get(k) <= 0) {
+                advertencia("La cantidad del ingrediente " + (k + 1) + " debe ser mayor que cero.");
+                return;
+            }
+            if (!vistos.add(idIng)) {
+                advertencia("El ingrediente " + (k + 1) + " está repetido en el formulario.");
+                return;
+            }
+            if (buscarEnReceta(idPlato, idIng) != null) {
+                advertencia("El ingrediente " + (k + 1) + " ya pertenece a la receta.\n"
+                        + "Use \"Actualizar cantidad\" para cambiarlo.");
+                return;
+            }
+        }
 
-        if (buscarEnReceta(idPlato, idIng) != null) {
-            aviso("Ingrediente agregado a la receta correctamente.");
-            limpiar();
-            cargarReceta();
+        int agregados = 0;
+        for (int k = 0; k < ids.size(); k++) {
+            PlatoIngredienteOperaciones.registrarIngredientePlato(idPlato, ids.get(k)[0], cantidades.get(k));
+            if (buscarEnReceta(idPlato, ids.get(k)[0]) != null) {
+                agregados++;
+            }
+        }
+
+        if (agregados == ids.size()) {
+            aviso(agregados == 1 ? "Ingrediente agregado a la receta correctamente."
+                    : agregados + " ingredientes agregados a la receta correctamente.");
         } else {
-            error("No se pudo agregar el ingrediente a la receta.");
+            error("Se agregaron " + agregados + " de " + ids.size() + " ingredientes a la receta.\n"
+                    + "Revise la receta y vuelva a intentar con los que faltan.");
         }
+        limpiar();
+        cargarReceta();
     }
 
     private void actualizarCantidad() {
@@ -488,6 +648,7 @@ public class PanelRecetas extends ModuloBase {
     }
 
     private void limpiar() {
+        quitarFilas();
         cargando = true;
         if (cmbIngrediente.getItemCount() > 0) {
             cmbIngrediente.setSelectedIndex(0);

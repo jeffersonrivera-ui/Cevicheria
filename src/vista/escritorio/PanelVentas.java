@@ -152,7 +152,7 @@ public class PanelVentas extends ModuloBase {
         col.add(Box.createVerticalStrut(12));
         col.add(alinear(botones));
         col.add(Box.createVerticalStrut(12));
-        col.add(alinear(Estilo.aviso("La venta se registra cuando el pedido está completamente pagado.",
+        col.add(alinear(Estilo.aviso("Las ventas se registran solas cuando un pedido queda completamente pagado.",
                 "info", 210)));
         col.add(Box.createVerticalStrut(8));
         col.add(alinear(Estilo.aviso("No se permite registrar ventas de pedidos cancelados, sin detalles, con "
@@ -176,6 +176,13 @@ public class PanelVentas extends ModuloBase {
 
         pastillaEstado.setVisible(false);
         recargar();
+
+        // Al volver a esta sección se vuelve a leer la base (por ejemplo, pedidos que ya se pagaron completos).
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                recargar();
+            }
+        });
     }
 
     // ---------- Construcción ----------
@@ -288,13 +295,28 @@ public class PanelVentas extends ModuloBase {
                 }
                 Map<Integer, Double> pagado = new HashMap<>();
                 for (Map<String, Object> p : pagoDAO.listarPagos()) {
-                    if ("Pagado".equalsIgnoreCase(String.valueOf(p.get("estado")))) {
+                    if (!"Anulado".equalsIgnoreCase(String.valueOf(p.get("estado")))) {
                         pagado.merge(entero(p.get("id_pedido")), num(p.get("monto")), Double::sum);
                     }
                 }
                 for (Pedido p : d.pedidos) {
                     double total = detalleDAO.calcularTotal(p.getId());
                     d.cuentas.put(p.getId(), new double[]{Math.max(total, 0), pagado.getOrDefault(p.getId(), 0.0)});
+                }
+                // Los pedidos pagados por completo se registran solos como venta.
+                boolean nuevas = false;
+                for (Pedido p : d.pedidos) {
+                    if (vendible(p, d)) {
+                        VentaOperaciones.registrarVenta(p.getId());
+                        nuevas = true;
+                    }
+                }
+                if (nuevas) {
+                    d.ventas = ventaDAO.listarVentas();
+                    d.pedidosConVenta.clear();
+                    for (Map<String, Object> v : d.ventas) {
+                        d.pedidosConVenta.add(entero(v.get("id_pedido")));
+                    }
                 }
                 return d;
             }
@@ -331,8 +353,12 @@ public class PanelVentas extends ModuloBase {
 
     // Solo los pedidos que cumplen todo lo que exige el sistema para venderse.
     private boolean vendible(Pedido p) {
-        double[] c = datos.cuentas.get(p.getId());
-        return !"CANCELADO".equalsIgnoreCase(p.getEstado()) && !datos.pedidosConVenta.contains(p.getId())
+        return vendible(p, datos);
+    }
+
+    private boolean vendible(Pedido p, Datos d) {
+        double[] c = d.cuentas.get(p.getId());
+        return !"CANCELADO".equalsIgnoreCase(p.getEstado()) && !d.pedidosConVenta.contains(p.getId())
                 && c != null && c[0] > 0 && Math.abs(c[1] - c[0]) <= 0.01;
     }
 

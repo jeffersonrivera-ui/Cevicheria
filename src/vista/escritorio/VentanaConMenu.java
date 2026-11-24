@@ -165,6 +165,32 @@ public abstract class VentanaConMenu extends JFrame {
         contenido.add(panel, nombre);
     }
 
+    // Igual que agregarSeccion, pero la seccion se puede volver a crear con el boton "Actualizar".
+    protected void agregarSeccion(String nombre, String glifo, java.util.function.Supplier<? extends JComponent> fabrica) {
+        JComponent panel = fabrica.get();
+        agregarSeccion(nombre, glifo, panel);
+        activarActualizar(nombre, panel, fabrica);
+    }
+
+    private void activarActualizar(String nombre, JComponent panel,
+                                   java.util.function.Supplier<? extends JComponent> fabrica) {
+        Runnable alActualizar = () -> {
+            JComponent nuevo = fabrica.get();
+            nuevo.setOpaque(false);
+            contenido.remove(panel);
+            contenido.add(nuevo, nombre);
+            activarActualizar(nombre, nuevo, fabrica);
+            contenido.revalidate();
+            contenido.repaint();
+            cartas.show(contenido, nombre);
+        };
+        if (panel instanceof ModuloBase) {
+            ((ModuloBase) panel).setAccionActualizar(alActualizar);
+        } else if (panel instanceof PanelInicio) {
+            ((PanelInicio) panel).setAccionActualizar(alActualizar);
+        }
+    }
+
     protected void terminarMenu() {
         menu.add(Box.createVerticalGlue());
 

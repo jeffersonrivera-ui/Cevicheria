@@ -285,7 +285,7 @@ public final class Estilo {
     }
 
     public static JLabel etiquetaCampo(String texto, boolean obligatorio) {
-        String html = "<html>" + escapar(texto) + (obligatorio ? " <font color='#DC2626'>*</font>" : "") + "</html>";
+        String html = "<html><nobr>" + escapar(texto) + (obligatorio ? " <font color='#DC2626'>*</font>" : "") + "</nobr></html>";
         JLabel l = new JLabel(html);
         l.setFont(PEQUENA_NEGRITA);
         l.setForeground(TEXTO);

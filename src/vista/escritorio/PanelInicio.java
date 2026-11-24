@@ -49,11 +49,20 @@ public class PanelInicio extends JPanel {
     private final JLabel lblPedidosHoy = valor();
     private final JLabel lblCuartaTarjeta = valor();
     private final GraficoBarras barras = new GraficoBarras();
+    private final GraficoBarras barrasPedidos = new GraficoBarras();
     private final GraficoDona dona = new GraficoDona();
     private final JPanel leyenda = new JPanel(new GridLayout(0, 1, 0, 6));
+    private final JPanel ranking = new JPanel(new GridLayout(0, 1, 0, 8));
     private final TablaPaginada ultimos = new TablaPaginada(
             new String[]{"ID", "Cliente", "Total", "Estado", "Fecha"}, 3, false);
     private final Estilo.Tarjeta tarjetaBarras = new Estilo.Tarjeta(new BorderLayout(0, 6));
+
+    private final JButton btnActualizarInicio = Estilo.boton("\u21BB  Actualizar", Estilo.GRIS);
+
+    public void setAccionActualizar(Runnable accion) {
+        btnActualizarInicio.addActionListener(e -> accion.run());
+        btnActualizarInicio.setVisible(true);
+    }
 
     public PanelInicio(Integer idMesero, Consumer<String> navegar, String[][] accesos) {
         super(new BorderLayout());
@@ -145,7 +154,10 @@ public class PanelInicio extends JPanel {
         chip.add(Estilo.etiqueta(fecha, Estilo.NEGRITA, Estilo.PRIMARIO_OSCURO));
         JPanel envoltorio = new JPanel(new GridBagLayout());
         envoltorio.setOpaque(false);
-        envoltorio.add(chip);
+        btnActualizarInicio.setVisible(false);
+        envoltorio.add(btnActualizarInicio, new GridBagConstraints(0, 0, 1, 1, 0, 0, GridBagConstraints.CENTER,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 12), 0, 0));
+        envoltorio.add(chip, new GridBagConstraints());
         p.add(envoltorio, BorderLayout.EAST);
         return p;
     }
@@ -155,7 +167,7 @@ public class PanelInicio extends JPanel {
         fila.setOpaque(false);
         fila.add(tarjetaDato("\u2668", new Color(0x2F80ED), "Platos", lblPlatos, "Activos", new Color(0xDBEAFE), new Color(0x1D4ED8)));
         fila.add(tarjetaDato("\u263A", new Color(0x22C55E), "Clientes", lblClientes, "Registrados", new Color(0xDCFCE7), new Color(0x15803D)));
-        fila.add(tarjetaDato("\u2637", new Color(0xF97316), idMesero == null ? "Pedidos" : "Mis pedidos", lblPedidosHoy, "Hoy", new Color(0xFFEDD5), new Color(0xC2410C)));
+        fila.add(tarjetaDato("\u2637", new Color(0xF97316), idMesero == null ? "Pedidos" : "Mis pedidos (semana)", lblPedidosHoy, idMesero == null ? "Hoy" : "Semana", new Color(0xFFEDD5), new Color(0xC2410C)));
         fila.add(tarjetaDato("\u2261", new Color(0x8B5CF6), idMesero == null ? "Ventas" : "Pendientes", lblCuartaTarjeta,
                 idMesero == null ? "Hoy" : "Por atender", new Color(0xEDE9FE), new Color(0x6D28D9)));
         return fila;
@@ -182,22 +194,26 @@ public class PanelInicio extends JPanel {
 
     private JPanel crearTarjetaDona() {
         Estilo.Tarjeta t = new Estilo.Tarjeta(new BorderLayout(0, 6));
-        t.add(Estilo.etiqueta("Pedidos por estado", Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO), BorderLayout.NORTH);
-        JPanel centro = new JPanel(new GridLayout(1, 2, 10, 0));
-        centro.setOpaque(false);
-        centro.add(dona);
-        leyenda.setOpaque(false);
-        JPanel cont = new JPanel(new GridBagLayout());
-        cont.setOpaque(false);
-        cont.add(leyenda);
-        centro.add(cont);
-        t.add(centro, BorderLayout.CENTER);
+        if (idMesero != null) {
+            // Vista del mesero: ranking de quienes mas pedidos atendieron en el mes
+            t.add(Estilo.etiqueta("Ranking de meseros del mes", Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO), BorderLayout.NORTH);
+            ranking.setOpaque(false);
+            JPanel arriba = new JPanel(new BorderLayout());
+            arriba.setOpaque(false);
+            arriba.setBorder(new EmptyBorder(10, 4, 0, 4));
+            arriba.add(ranking, BorderLayout.NORTH);
+            t.add(arriba, BorderLayout.CENTER);
+            return t;
+        }
+        // Vista del administrador: pedidos de cada dia de la semana
+        t.add(Estilo.etiqueta("Pedidos por día (semana)", Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO), BorderLayout.NORTH);
+        t.add(barrasPedidos, BorderLayout.CENTER);
         return t;
     }
 
     private JPanel crearTarjetaUltimos() {
         Estilo.Tarjeta t = new Estilo.Tarjeta(new BorderLayout(0, 8));
-        t.add(Estilo.etiqueta("Últimos pedidos", Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO), BorderLayout.NORTH);
+        t.add(Estilo.etiqueta(idMesero == null ? "Últimos pedidos" : "Mis últimos pedidos", Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO), BorderLayout.NORTH);
         t.add(ultimos, BorderLayout.CENTER);
         t.setPreferredSize(new Dimension(420, 380));
         return t;
@@ -229,29 +245,46 @@ public class PanelInicio extends JPanel {
 
             int[] porEstado = new int[ESTADOS.length];
             double[] semana = new double[7];
+            double[] pedidosDia = new double[7];
             int pedidosHoy = 0;
             int pendientes = 0;
             java.util.List<Object[]> filas = new java.util.ArrayList<>();
 
+            java.util.Map<Integer, Integer> conteoMes = new java.util.LinkedHashMap<>();
+            java.util.Map<Integer, String> nombresMes = new java.util.HashMap<>();
+            String mesActual = hoy.toString().substring(0, 7);
+
             for (Pedido p : todos) {
-                if (idMesero != null && (p.getMesero() == null || p.getMesero().getId() != idMesero)) {
-                    continue;
-                }
                 String estado = p.getEstado() == null ? "" : p.getEstado().trim().toUpperCase();
+                boolean mio = idMesero == null
+                        || (p.getMesero() != null && p.getMesero().getId() == idMesero);
+                boolean cancelado = estado.equals("CANCELADO");
+                if (p.getMesero() != null && !cancelado && p.getFecha() != null
+                        && p.getFecha().startsWith(mesActual)) {
+                    int idM = p.getMesero().getId();
+                    conteoMes.merge(idM, 1, Integer::sum);
+                    nombresMes.put(idM, p.getMesero().getNombres() + " " + p.getMesero().getApellidos());
+                }
                 for (int i = 0; i < ESTADOS.length; i++) {
                     if (ESTADOS[i].equals(estado)) {
                         porEstado[i]++;
                     }
                 }
-                if (estado.equals("PENDIENTE")) {
+                if (estado.equals("PENDIENTE") && mio) {
                     pendientes++;
                 }
                 LocalDate f = fechaDe(p.getFecha());
-                if (f != null) {
-                    if (f.equals(hoy)) {
+                if (f != null && !cancelado) {
+                    long d = java.time.temporal.ChronoUnit.DAYS.between(lunes, f);
+                    if (d >= 0 && d < 7) {
+                        pedidosDia[(int) d]++;
+                    }
+                }
+                if (f != null && mio && !cancelado) {
+                    long dias = java.time.temporal.ChronoUnit.DAYS.between(lunes, f);
+                    if (idMesero == null ? f.equals(hoy) : (dias >= 0 && dias < 7)) {
                         pedidosHoy++;
                     }
-                    long dias = java.time.temporal.ChronoUnit.DAYS.between(lunes, f);
                     if (idMesero != null && dias >= 0 && dias < 7) {
                         semana[(int) dias] += 1;
                     }
@@ -308,30 +341,82 @@ public class PanelInicio extends JPanel {
             }
 
             tarjetaBarras.removeAll();
-            tarjetaBarras.add(Estilo.etiqueta(idMesero == null ? "Ventas de la semana" : "Mis pedidos de la semana",
+            tarjetaBarras.add(Estilo.etiqueta(idMesero == null ? "Ventas de la semana" : "Pedidos que atendí esta semana",
                     Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO), BorderLayout.NORTH);
             barras.poner(semana, idMesero == null, hoy.getDayOfWeek().getValue() - 1);
             tarjetaBarras.add(barras, BorderLayout.CENTER);
             tarjetaBarras.revalidate();
             tarjetaBarras.repaint();
 
-            dona.poner(porEstado);
-            leyenda.removeAll();
-            for (int i = 0; i < ESTADOS.length; i++) {
-                JPanel linea = new JPanel(new BorderLayout(8, 0));
-                linea.setOpaque(false);
-                JLabel punto = Estilo.etiqueta("\u25CF", Estilo.NEGRITA, COLORES_ESTADOS[i]);
-                linea.add(punto, BorderLayout.WEST);
-                linea.add(Estilo.etiqueta(NOMBRES_ESTADOS[i], Estilo.PEQUENA, Estilo.TEXTO), BorderLayout.CENTER);
-                linea.add(Estilo.etiqueta(String.valueOf(porEstado[i]), Estilo.PEQUENA_NEGRITA, Estilo.TEXTO), BorderLayout.EAST);
-                leyenda.add(linea);
+            if (idMesero != null) {
+                llenarRanking(conteoMes, nombresMes);
+                return;
             }
-            leyenda.revalidate();
-            leyenda.repaint();
+            barrasPedidos.poner(pedidosDia, false, hoy.getDayOfWeek().getValue() - 1);
+
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "No se pudo cargar el panel principal: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // Top 5 de meseros con mas pedidos en el mes; el propio mesero siempre aparece
+    private void llenarRanking(java.util.Map<Integer, Integer> conteo, java.util.Map<Integer, String> nombres) {
+        java.util.List<Integer> orden = new java.util.ArrayList<>(conteo.keySet());
+        orden.sort((a, b) -> conteo.get(b) - conteo.get(a));
+        int mayor = orden.isEmpty() ? 1 : conteo.get(orden.get(0));
+
+        ranking.removeAll();
+        for (int i = 0; i < orden.size() && i < 5; i++) {
+            int id = orden.get(i);
+            ranking.add(filaRanking(i + 1, nombres.get(id), conteo.get(id), mayor, id == idMesero));
+        }
+        int miPuesto = orden.indexOf(idMesero);
+        if (miPuesto >= 5) {
+            ranking.add(filaRanking(miPuesto + 1, nombres.get(idMesero), conteo.get(idMesero), mayor, true));
+        } else if (miPuesto < 0) {
+            ranking.add(filaRanking(orden.size() + 1, "Yo", 0, mayor, true));
+        }
+        if (orden.isEmpty()) {
+            ranking.add(Estilo.etiqueta("Aún no hay pedidos este mes.", Estilo.PEQUENA, Estilo.TEXTO_SUAVE));
+        }
+        ranking.revalidate();
+        ranking.repaint();
+    }
+
+    private JPanel filaRanking(int puesto, String nombre, int cantidad, int mayor, boolean esMio) {
+        JPanel fila = new JPanel(new BorderLayout(10, 0));
+        fila.setOpaque(false);
+        String medalla = puesto == 1 ? "\uD83E\uDD47" : puesto == 2 ? "\uD83E\uDD48" : puesto == 3 ? "\uD83E\uDD49" : "";
+        JLabel lblPuesto = Estilo.etiqueta(medalla.isEmpty() ? puesto + "." : puesto + ".", Estilo.NEGRITA,
+                esMio ? Estilo.PRIMARIO : Estilo.TEXTO);
+        lblPuesto.setPreferredSize(new Dimension(28, 20));
+        fila.add(lblPuesto, BorderLayout.WEST);
+
+        JPanel centro = new JPanel(new BorderLayout(0, 3));
+        centro.setOpaque(false);
+        centro.add(Estilo.etiqueta(esMio ? nombre + "  (yo)" : nombre,
+                esMio ? Estilo.PEQUENA_NEGRITA : Estilo.PEQUENA, Estilo.TEXTO), BorderLayout.NORTH);
+        final double parte = mayor == 0 ? 0 : (double) cantidad / mayor;
+        final Color color = esMio ? Estilo.PRIMARIO : new Color(0xA9CCFF);
+        JComponent barra = new JComponent() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0xE5ECF8));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.setColor(color);
+                g2.fillRoundRect(0, 0, Math.max(8, (int) (getWidth() * parte)), getHeight(), 8, 8);
+                g2.dispose();
+            }
+        };
+        barra.setPreferredSize(new Dimension(10, 8));
+        centro.add(barra, BorderLayout.CENTER);
+        fila.add(centro, BorderLayout.CENTER);
+        fila.add(Estilo.etiqueta(cantidad + (cantidad == 1 ? " pedido" : " pedidos"), Estilo.PEQUENA_NEGRITA, Estilo.TEXTO),
+                BorderLayout.EAST);
+        return fila;
     }
 
     private static String nombreEstado(String estado) {

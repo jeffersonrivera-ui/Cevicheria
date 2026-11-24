@@ -55,8 +55,9 @@ public class PanelCompras extends ModuloBase {
     private final JTextField txtId = new CampoHint("Ingrese el ID de compra...");
     private final JTextField txtFecha = new CampoHint("dd/mm/aaaa");
     private final TablaPaginada tabla = new TablaPaginada(
-            new String[]{"ID compra", "Fecha", "Ingrediente", "Cantidad", "Precio unit. (S/)", "Total (S/)"}, 5, true);
+            new String[]{"ID compra", "Fecha", "Ingrediente", "Proveedor", "Cantidad", "Precio unit. (S/)", "Total (S/)"}, 6, true);
 
+    private final JComboBox<Opcion> cmbProveedor = new JComboBox<>();
     private final JComboBox<Opcion> cmbIngrediente = new JComboBox<>();
     private final JSpinner spnCantidad = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 1000000.0, 0.5));
     private final JSpinner spnPrecio = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 1000000.0, 0.5));
@@ -93,12 +94,14 @@ public class PanelCompras extends ModuloBase {
         arriba.add(tituloDePanel("≡", "Historial de compras"), BorderLayout.CENTER);
         panelIzquierdo.add(arriba, BorderLayout.NORTH);
 
-        tabla.setAnchos(50, 80, 110, 80, 80, 80, 60);
+        tabla.setAnchos(45, 75, 95, 100, 75, 70, 70, 55);
         tabla.setTituloAcciones("Detalle");
         tabla.setAcciones(new TablaPaginada.Accion("◉", new Color(0x1E6FEB), Color.WHITE, this::verDetalle));
         panelIzquierdo.add(tabla, BorderLayout.CENTER);
 
         // ----- Derecha -----
+        cmbProveedor.setFont(Estilo.FUENTE);
+        cmbProveedor.setPreferredSize(new Dimension(120, 36));
         cmbIngrediente.setFont(Estilo.FUENTE);
         cmbIngrediente.setPreferredSize(new Dimension(120, 36));
         for (JSpinner s : new JSpinner[]{spnCantidad, spnPrecio}) {
@@ -136,6 +139,8 @@ public class PanelCompras extends ModuloBase {
         col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS));
         col.add(alinear(tituloDePanel("+", "Registrar compra")));
         col.add(Box.createVerticalStrut(10));
+        col.add(alinear(conEtiqueta("Proveedor (opcional):", false, cmbProveedor)));
+        col.add(Box.createVerticalStrut(8));
         col.add(alinear(conEtiqueta("Ingrediente:", true, cmbIngrediente)));
         col.add(alinear(lblUnidad));
         col.add(Box.createVerticalStrut(6));
@@ -170,7 +175,15 @@ public class PanelCompras extends ModuloBase {
         });
 
         cargarIngredientes();
+        cargarProveedores();
         cargar();
+
+        // Al volver a esta sección se actualiza la lista de proveedores (por si se agregó alguno).
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                cargarProveedores();
+            }
+        });
     }
 
     // ---------- Construcción ----------
@@ -233,6 +246,29 @@ public class PanelCompras extends ModuloBase {
         }
     }
 
+    // Solo se ofrecen los proveedores ACTIVOS; se conserva la elección si sigue disponible.
+    private void cargarProveedores() {
+        Opcion elegido = (Opcion) cmbProveedor.getSelectedItem();
+        cmbProveedor.removeAllItems();
+        cmbProveedor.addItem(new Opcion(0, "Sin proveedor", ""));
+        try {
+            for (modelo.Proveedor p : controlador.ProveedorOperaciones.listarProveedores()) {
+                if (p.estaActivo()) {
+                    cmbProveedor.addItem(new Opcion(p.getId(), p.getNombre(), ""));
+                }
+            }
+        } catch (Exception ex) {
+            error("No se pudieron cargar los proveedores: " + ex.getMessage());
+        }
+        if (elegido != null && elegido.id > 0) {
+            for (int i = 0; i < cmbProveedor.getItemCount(); i++) {
+                if (cmbProveedor.getItemAt(i).id == elegido.id) {
+                    cmbProveedor.setSelectedIndex(i);
+                }
+            }
+        }
+    }
+
     private void cargar() {
         try {
             historial = compraDAO.listarCompras();
@@ -290,6 +326,7 @@ public class PanelCompras extends ModuloBase {
                 continue;
             }
             filas.add(new Object[]{c.get("id_compra"), fechaBonita(c.get("fecha")), c.get("nombre"),
+                    c.get("proveedor") == null ? "Sin proveedor" : c.get("proveedor"),
                     dos(num(c.get("cantidad"))) + " " + nz((String) c.get("unidad")),
                     dos(num(c.get("precio_unitario"))), dos(num(c.get("total")))});
         }
@@ -310,7 +347,8 @@ public class PanelCompras extends ModuloBase {
         }
         StringBuilder sb = new StringBuilder();
         Map<String, Object> primera = partes.get(0);
-        sb.append("Compra N.° ").append(id).append("\nFecha: ").append(fechaBonita(primera.get("fecha")));
+        sb.append("Compra N.° ").append(id).append("\nFecha: ").append(fechaBonita(primera.get("fecha")))
+                .append("\nProveedor: ").append(primera.get("proveedor") == null ? "Sin proveedor" : primera.get("proveedor"));
         for (Map<String, Object> p : partes) {
             sb.append("\n\nIngrediente: ").append(p.get("nombre"))
                     .append("\nCantidad: ").append(dos(num(p.get("cantidad")))).append(" ").append(nz((String) p.get("unidad")))
@@ -355,17 +393,21 @@ public class PanelCompras extends ModuloBase {
             return;
         }
         double total = cantidad * precio;
-        if (!confirmar("¿Registrar la compra?\n\nIngrediente: " + ing.texto + "\nCantidad: " + dos(cantidad) + " "
+        Opcion prov = (Opcion) cmbProveedor.getSelectedItem();
+        Integer idProveedor = prov == null || prov.id <= 0 ? null : prov.id;
+        if (!confirmar("¿Registrar la compra?\n\nProveedor: " + (idProveedor == null ? "Sin proveedor" : prov.texto)
+                + "\nIngrediente: " + ing.texto + "\nCantidad: " + dos(cantidad) + " "
                 + ing.unidad + "\nPrecio unitario: " + Estilo.soles(precio) + "\nTotal: " + Estilo.soles(total))) {
             return;
         }
 
-        int id = ComprasOperaciones.registrarCompra(ing.id, cantidad, precio);
+        int id = ComprasOperaciones.registrarCompra(ing.id, cantidad, precio, idProveedor);
 
         if (id > 0 && !compraDAO.buscarCompra(id).isEmpty()) {
             aviso("Compra N.° " + id + " registrada correctamente.\n"
                     + "El stock de " + ing.texto + " aumentó en " + dos(cantidad) + " " + ing.unidad + ".");
             cmbIngrediente.setSelectedIndex(0);
+            cmbProveedor.setSelectedIndex(0);
             spnCantidad.setValue(0.0);
             spnPrecio.setValue(0.0);
             cargar();

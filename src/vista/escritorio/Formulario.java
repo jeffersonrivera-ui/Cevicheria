@@ -18,7 +18,9 @@ public class Formulario extends JPanel {
         g.gridy = fila;
         g.anchor = GridBagConstraints.WEST;
         g.insets = new Insets(6, 0, 6, 12);
-        add(Estilo.etiquetaCampo(etiqueta, obligatorio), g);
+        JLabel lbl = Estilo.etiquetaCampo(etiqueta, obligatorio);
+        lbl.setMinimumSize(lbl.getPreferredSize());
+        add(lbl, g);
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 1;

@@ -18,6 +18,11 @@ public class ClienteOperaciones {
     // ==========================================
 
     public static void registrarCliente(String nombres, String apellidos, String telefono) {
+        registrarCliente(nombres, apellidos, telefono, null, null, null);
+    }
+
+    public static void registrarCliente(String nombres, String apellidos, String telefono,
+                                        String direccion, String referencia, String distrito) {
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty()) {
 
@@ -25,7 +30,8 @@ public class ClienteOperaciones {
             return;
         }
 
-        Cliente cliente = new Cliente(0, nombres.trim(), telefono, apellidos.trim());
+        Cliente cliente = new Cliente(0, nombres.trim(), telefono, apellidos.trim(),
+                limpiar(direccion), limpiar(referencia), limpiar(distrito));
 
         int id = clienteDAO.insertar(cliente);
 
@@ -80,6 +86,16 @@ public class ClienteOperaciones {
     // ==========================================
 
     public static void actualizarCliente(int id, String nombres, String apellidos, String telefono) {
+        Cliente actual = clienteDAO.buscarPorId(id);
+        // Si solo se cambian los datos basicos, se conservan los datos de entrega.
+        actualizarCliente(id, nombres, apellidos, telefono,
+                actual == null ? null : actual.getDireccion(),
+                actual == null ? null : actual.getReferencia(),
+                actual == null ? null : actual.getDistrito());
+    }
+
+    public static void actualizarCliente(int id, String nombres, String apellidos, String telefono,
+                                         String direccion, String referencia, String distrito) {
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty()) {
 
@@ -100,6 +116,9 @@ public class ClienteOperaciones {
         cliente.setNombres(nombres.trim());
         cliente.setApellidos(apellidos.trim());
         cliente.setTelefono(telefono);
+        cliente.setDireccion(limpiar(direccion));
+        cliente.setReferencia(limpiar(referencia));
+        cliente.setDistrito(limpiar(distrito));
 
         // Enviamos el objeto actualizado al DAO
         if (clienteDAO.actualizar(cliente)) {
@@ -136,5 +155,8 @@ public class ClienteOperaciones {
 
         return clienteDAO.existe(id);
     }
-}
 
+    private static String limpiar(String texto) {
+        return texto == null || texto.trim().isEmpty() ? null : texto.trim();
+    }
+}

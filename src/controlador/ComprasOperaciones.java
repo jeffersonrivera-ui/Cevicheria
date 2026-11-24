@@ -12,6 +12,24 @@ public class ComprasOperaciones {
 
     // REGISTRAR COMPRA
     public static int registrarCompra(int idIngrediente, double cantidad, double precioUnitario) {
+        return registrarCompra(idIngrediente, cantidad, precioUnitario, null);
+    }
+
+    // Con idProveedor (opcional): el proveedor debe existir y estar ACTIVO.
+    public static int registrarCompra(int idIngrediente, double cantidad, double precioUnitario,
+                                      Integer idProveedor) {
+
+        if (idProveedor != null) {
+            modelo.Proveedor proveedor = ProveedorOperaciones.buscarProveedor(idProveedor);
+            if (proveedor == null) {
+                System.out.println("El proveedor no existe.");
+                return -1;
+            }
+            if (!proveedor.estaActivo()) {
+                System.out.println("El proveedor esta INACTIVO.");
+                return -1;
+            }
+        }
 
         // Validaciones
         if (idIngrediente <= 0) {
@@ -36,7 +54,7 @@ public class ComprasOperaciones {
             return -1;
         }
 
-        int idCompra = compraDAO.registrarCompra(idIngrediente, cantidad, precioUnitario);
+        int idCompra = compraDAO.registrarCompra(idIngrediente, cantidad, precioUnitario, idProveedor);
 
         if (idCompra > 0) {
 
@@ -44,6 +62,9 @@ public class ComprasOperaciones {
             System.out.println("COMPRA REGISTRADA CORRECTAMENTE");
             System.out.println("================================");
             System.out.println("ID de compra: " + idCompra);
+            if (idProveedor != null) {
+                System.out.println("Proveedor N.° " + idProveedor);
+            }
             System.out.println("Cantidad comprada: " + cantidad);
             System.out.println("Precio unitario: S/ " + precioUnitario);
             System.out.println("Total: S/ " + total);

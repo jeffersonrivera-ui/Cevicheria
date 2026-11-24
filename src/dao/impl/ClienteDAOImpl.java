@@ -22,7 +22,7 @@ public class ClienteDAOImpl implements ClienteDAO {
     @Override
     public int insertar(Cliente cliente) {
 
-        String sql = "INSERT INTO clientes (nombres, apellidos, telefono) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO clientes (nombres, apellidos, telefono, direccion, referencia, distrito) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -30,6 +30,9 @@ public class ClienteDAOImpl implements ClienteDAO {
             ps.setString(1, cliente.getNombres());
             ps.setString(2, cliente.getApellidos());
             ps.setString(3, cliente.getTelefono());
+            ps.setString(4, vacioANulo(cliente.getDireccion()));
+            ps.setString(5, vacioANulo(cliente.getReferencia()));
+            ps.setString(6, vacioANulo(cliente.getDistrito()));
 
             int filas = ps.executeUpdate();
 
@@ -61,21 +64,12 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "SELECT * FROM clientes ORDER BY id_cliente";
 
-        try  {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-
-                Cliente cliente = new Cliente(
-                        rs.getInt("id_cliente"),
-                        rs.getString("nombres"),
-                        rs.getString("telefono"),
-                        rs.getString("apellidos")
-                );
-
-                clientes.add(cliente);
+                clientes.add(mapear(rs));
             }
 
         } catch (SQLException e) {
@@ -95,24 +89,16 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "SELECT * FROM clientes WHERE id_cliente = ?";
 
-        try {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
-            ResultSet rs = ps.executeQuery();
-
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-
-                    return new Cliente(
-                            rs.getInt("id_cliente"),
-                            rs.getString("nombres"),
-                            rs.getString("telefono"),
-                            rs.getString("apellidos")
-                    );
+                    return mapear(rs);
                 }
-
+            }
 
         } catch (SQLException e) {
 
@@ -129,16 +115,18 @@ public class ClienteDAOImpl implements ClienteDAO {
     @Override
     public boolean actualizar(Cliente cliente) {
 
-        String sql = "UPDATE clientes SET nombres = ?, apellidos = ?, telefono = ? WHERE id_cliente = ?";
+        String sql = "UPDATE clientes SET nombres = ?, apellidos = ?, telefono = ?, direccion = ?, referencia = ?, distrito = ? WHERE id_cliente = ?";
 
-        try  {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, cliente.getNombres());
             ps.setString(2, cliente.getApellidos());
             ps.setString(3, cliente.getTelefono());
-            ps.setInt(4, cliente.getId());
+            ps.setString(4, vacioANulo(cliente.getDireccion()));
+            ps.setString(5, vacioANulo(cliente.getReferencia()));
+            ps.setString(6, vacioANulo(cliente.getDistrito()));
+            ps.setInt(7, cliente.getId());
 
             return ps.executeUpdate() > 0;
 
@@ -159,9 +147,8 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "DELETE FROM clientes WHERE id_cliente = ?";
 
-        try  {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
@@ -190,9 +177,8 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "SELECT id_cliente FROM clientes WHERE id_cliente = ?";
 
-        try {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
@@ -208,5 +194,24 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         return false;
     }
-}
 
+    // ==========================================
+    // AUXILIARES
+    // ==========================================
+
+    private Cliente mapear(ResultSet rs) throws SQLException {
+        return new Cliente(
+                rs.getInt("id_cliente"),
+                rs.getString("nombres"),
+                rs.getString("telefono"),
+                rs.getString("apellidos"),
+                rs.getString("direccion"),
+                rs.getString("referencia"),
+                rs.getString("distrito")
+        );
+    }
+
+    private String vacioANulo(String texto) {
+        return texto == null || texto.trim().isEmpty() ? null : texto.trim();
+    }
+}

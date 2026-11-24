@@ -102,17 +102,16 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
         String sql = "SELECT * FROM empleados WHERE id_empleado = ?";
 
-        try  {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
-            ResultSet rs = ps.executeQuery();
-
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return crearEmpleado(rs);
                 }
+            }
 
         } catch (SQLException e) {
             System.out.println("Error al buscar empleado: " + e.getMessage());
@@ -126,9 +125,8 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
         String sql = "DELETE FROM empleados WHERE id_empleado = ?";
 
-        try{
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
@@ -149,9 +147,8 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
                 "referencia_direccion = ?, salario = ?, turno_laboral = ?, " +
                 "fecha_contratacion = ? WHERE id_empleado = ?";
 
-        try {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, empleado.getNombres());
             ps.setString(2, empleado.getApellidos());
@@ -249,9 +246,8 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
         String sql = "SELECT id_empleado FROM empleados WHERE id_empleado = ?";
 
-        try {
-            Connection connection = ConexionBD.getConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 

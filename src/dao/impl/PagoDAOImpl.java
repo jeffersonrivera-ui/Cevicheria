@@ -21,11 +21,16 @@ public class PagoDAOImpl implements PagoDAO {
 
         String sqlPedido = "SELECT estado FROM pedidos WHERE id_pedido = ? FOR UPDATE";
 
-        String sqlTotal = "SELECT COALESCE(SUM(cantidad * precio), 0) AS total FROM detalle_pedido WHERE id_pedido = ?";
+        String sqlTotal = "SELECT COALESCE(SUM(t.cantidad * t.precio), 0) AS total FROM (SELECT id_pedido, cantidad, precio FROM detalle_pedido UNION ALL SELECT id_pedido, cantidad, precio FROM detalle_bebida) t WHERE t.id_pedido = ?";
 
-        String sqlPagado = "SELECT COALESCE(SUM(monto), 0) AS total_pagado FROM pagos WHERE id_pedido = ? AND estado = 'Pagado'";
+        String sqlPagado = "SELECT COALESCE(SUM(monto), 0) AS total_pagado FROM pagos WHERE id_pedido = ? AND estado IN ('Pagado', 'Adelanto')";
 
-        String sqlPago = "INSERT INTO pagos (id_pedido, monto, metodo_pago, estado) VALUES (?, ?, ?, 'Pagado')";
+        // Un pedido usa UN solo registro de pago: si ya existe se reutiliza (mismo id) y se actualiza.
+        String sqlExistente = "SELECT id_pago FROM pagos WHERE id_pedido = ? AND estado IN ('Pagado', 'Adelanto') ORDER BY id_pago LIMIT 1 FOR UPDATE";
+
+        String sqlInsertar = "INSERT INTO pagos (id_pedido, monto, metodo_pago, estado) VALUES (?, ?, ?, ?)";
+
+        String sqlActualizar = "UPDATE pagos SET monto = monto + ?, metodo_pago = ?, fecha = NOW(), estado = ? WHERE id_pago = ?";
 
         try (Connection connection = ConexionBD.getConnection()) {
 
@@ -108,28 +113,53 @@ public class PagoDAOImpl implements PagoDAO {
                     return null;
                 }
 
-                // 5. Registrar el pago.
-                int idPago;
+                // 5. Registrar el pago: reutilizar el registro del pedido o crear el primero.
+                boolean completo = saldoPendiente - monto <= 0.01;
+                String nuevoEstado = completo ? "Pagado" : "Adelanto";
+                int idPago = 0;
 
-                try (PreparedStatement ps = connection.prepareStatement(sqlPago, PreparedStatement.RETURN_GENERATED_KEYS)) {
-
+                try (PreparedStatement ps = connection.prepareStatement(sqlExistente)) {
                     ps.setInt(1, idPedido);
-                    ps.setDouble(2, monto);
-                    ps.setString(3, metodoPago);
-
-                    if (ps.executeUpdate() == 0) {
-                        connection.rollback();
-                        System.out.println("No se pudo registrar el pago.");
-                        return null;
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            idPago = rs.getInt("id_pago");
+                        }
                     }
+                }
 
-                    try (ResultSet rs = ps.getGeneratedKeys()) {
-                        if (!rs.next()) {
+                if (idPago > 0) {
+                    try (PreparedStatement ps = connection.prepareStatement(sqlActualizar)) {
+                        ps.setDouble(1, monto);
+                        ps.setString(2, metodoPago);
+                        ps.setString(3, nuevoEstado);
+                        ps.setInt(4, idPago);
+
+                        if (ps.executeUpdate() == 0) {
                             connection.rollback();
+                            System.out.println("No se pudo actualizar el pago.");
+                            return null;
+                        }
+                    }
+                } else {
+                    try (PreparedStatement ps = connection.prepareStatement(sqlInsertar, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                        ps.setInt(1, idPedido);
+                        ps.setDouble(2, monto);
+                        ps.setString(3, metodoPago);
+                        ps.setString(4, nuevoEstado);
+
+                        if (ps.executeUpdate() == 0) {
+                            connection.rollback();
+                            System.out.println("No se pudo registrar el pago.");
                             return null;
                         }
 
-                        idPago = rs.getInt(1);
+                        try (ResultSet rs = ps.getGeneratedKeys()) {
+                            if (!rs.next()) {
+                                connection.rollback();
+                                return null;
+                            }
+                            idPago = rs.getInt(1);
+                        }
                     }
                 }
 
@@ -148,6 +178,7 @@ public class PagoDAOImpl implements PagoDAO {
                 pago.put("total_pedido", totalPedido);
                 pago.put("total_pagado", totalPagado);
                 pago.put("saldo_pendiente", saldoPendiente);
+                pago.put("estado", nuevoEstado);
 
                 return pago;
 

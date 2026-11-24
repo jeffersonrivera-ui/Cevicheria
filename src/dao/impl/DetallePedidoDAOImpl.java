@@ -357,8 +357,10 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
     @Override
     public double calcularTotal(int idPedido) {
 
-        String sql = "SELECT COALESCE(SUM(cantidad * precio), 0) AS total " +
-                "FROM detalle_pedido WHERE id_pedido = ?";
+        // Total del pedido = platos + bebidas.
+        String sql = "SELECT COALESCE(SUM(t.cantidad * t.precio), 0) AS total FROM (" +
+                "SELECT id_pedido, cantidad, precio FROM detalle_pedido UNION ALL " +
+                "SELECT id_pedido, cantidad, precio FROM detalle_bebida) t WHERE t.id_pedido = ?";
 
         try (Connection connection = ConexionBD.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {

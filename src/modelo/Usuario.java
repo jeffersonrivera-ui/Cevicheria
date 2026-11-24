@@ -11,6 +11,8 @@ public class Usuario {
     private String cargo;
     private String estadoLaboral;
 
+    private String nombreEmpleado;
+
     public Usuario() {
     }
 
@@ -68,6 +70,14 @@ public class Usuario {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+    public String getNombreEmpleado() {
+        return nombreEmpleado;
+    }
+
+    public void setNombreEmpleado(String nombreEmpleado) {
+        this.nombreEmpleado = nombreEmpleado;
+    }
+
     public String getCargo() {
         return cargo;
     }

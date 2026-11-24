@@ -42,7 +42,7 @@ public class TablaPaginada extends JPanel {
         }
     }
 
-    private static final int TAMANO = 8;
+    private static final int MINIMO_FILAS = 8;
     private static final int ICONO = 28;
     private static final int SEPARACION = 6;
 
@@ -58,6 +58,7 @@ public class TablaPaginada extends JPanel {
 
     private List<Object[]> filas = new ArrayList<>();
     private int pagina = 0;
+    private int tamano = MINIMO_FILAS;   // filas por pagina: se ajusta al alto disponible
     private boolean cargando = false;
     private Escucha escucha;
     private List<Accion> acciones = null;
@@ -112,7 +113,7 @@ public class TablaPaginada extends JPanel {
                 if (col != colAcciones || row < 0) {
                     return;
                 }
-                int idx = pagina * TAMANO + row;
+                int idx = pagina * tamano + row;
                 if (idx >= filas.size()) {
                     return;
                 }
@@ -154,6 +155,25 @@ public class TablaPaginada extends JPanel {
 
         add(sp, BorderLayout.CENTER);
         add(pie, BorderLayout.SOUTH);
+        mostrarPagina();
+
+        // Si sobra espacio hacia abajo, se muestran mas filas por pagina para llenarlo.
+        sp.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                ajustarFilasAlAlto(sp.getViewport().getHeight());
+            }
+        });
+    }
+
+    private void ajustarFilasAlAlto(int altoDisponible) {
+        int nuevo = Math.max(MINIMO_FILAS, altoDisponible / tabla.getRowHeight());
+        if (nuevo == tamano) {
+            return;
+        }
+        int primeraFila = pagina * tamano;
+        tamano = nuevo;
+        pagina = primeraFila / tamano;
         mostrarPagina();
     }
 
@@ -218,7 +238,7 @@ public class TablaPaginada extends JPanel {
         if (row < 0) {
             return null;
         }
-        int idx = pagina * TAMANO + row;
+        int idx = pagina * tamano + row;
         return idx < filas.size() ? filas.get(idx) : null;
     }
 
@@ -231,14 +251,14 @@ public class TablaPaginada extends JPanel {
     }
 
     private int totalPaginas() {
-        return Math.max(1, (int) Math.ceil(filas.size() / (double) TAMANO));
+        return Math.max(1, (int) Math.ceil(filas.size() / (double) tamano));
     }
 
     private void mostrarPagina() {
         cargando = true;
         modelo.setRowCount(0);
-        int desde = pagina * TAMANO;
-        int hasta = Math.min(desde + TAMANO, filas.size());
+        int desde = pagina * tamano;
+        int hasta = Math.min(desde + tamano, filas.size());
         for (int i = desde; i < hasta; i++) {
             Object[] r = filas.get(i);
             modelo.addRow(conAcciones ? Arrays.copyOf(r, r.length + 1) : r);

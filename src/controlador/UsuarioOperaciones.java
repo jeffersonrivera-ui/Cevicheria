@@ -4,6 +4,8 @@ import dao.UsuarioDAO;
 import dao.impl.UsuarioDAOImpl;
 import modelo.Usuario;
 
+import java.util.List;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.SecureRandom;
@@ -67,6 +69,39 @@ public class UsuarioOperaciones {
         }
 
         return null;
+    }
+
+    // Funciones para la ventana de administración
+
+    public List<Usuario> listarUsuarios() {
+        return usuarioDAO.listar();
+    }
+
+    public Usuario buscarUsuario(int idUsuario) {
+        return usuarioDAO.buscarPorId(idUsuario);
+    }
+
+    public boolean nombreDisponible(String nombreUsuario) {
+        return usuarioDAO.buscarPorNombreUsuario(nombreUsuario.trim()) == null;
+    }
+
+    public boolean cambiarContrasena(int idUsuario, String nuevaContrasena) {
+        if (nuevaContrasena == null || nuevaContrasena.isEmpty()) {
+            return false;
+        }
+        String hash = generarHash(nuevaContrasena);
+        if (hash == null) {
+            return false;
+        }
+        return usuarioDAO.actualizarPassword(idUsuario, hash);
+    }
+
+    public boolean cambiarEstado(int idUsuario, String estado) {
+        return usuarioDAO.actualizarEstado(idUsuario, estado);
+    }
+
+    public boolean eliminarUsuario(int idUsuario) {
+        return usuarioDAO.eliminar(idUsuario);
     }
 
     // Generar contraseña segura

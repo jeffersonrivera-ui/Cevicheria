@@ -105,6 +105,9 @@ public class PanelPagos extends ModuloBase {
         arriba.add(tituloDePanel("≡", "Historial de pagos"), BorderLayout.CENTER);
         panelIzquierdo.add(arriba, BorderLayout.NORTH);
 
+        tabla.setColorPastilla(t -> "ADELANTO".equalsIgnoreCase(t)
+                ? new Color[]{new Color(0xFEF3C7), new Color(0xB45309)}
+                : Estilo.coloresPastilla(t));
         tabla.setAnchos(50, 60, 70, 90, 110, 80, 50);
         tabla.setTituloAcciones("Acción");
         tabla.setAcciones(new TablaPaginada.Accion("◉", new Color(0x1E6FEB), Color.WHITE, this::verDetalle));
@@ -185,6 +188,13 @@ public class PanelPagos extends ModuloBase {
         spnMonto.addChangeListener(e -> recalcularRestante());
 
         recargar(null);
+
+        // Al volver a esta sección se vuelve a leer la base (por ejemplo, para ver pedidos nuevos).
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                recargar(null);
+            }
+        });
     }
 
     // ---------- Construcción ----------
@@ -246,8 +256,23 @@ public class PanelPagos extends ModuloBase {
         return String.format(Locale.US, "%.2f", v);
     }
 
+    // Un pedido tiene un solo registro de pago: "Adelanto" mientras queda saldo, "Pagado" cuando se completa.
+    // (Para registros antiguos con varias filas se calcula con el total acumulado del pedido.)
+    private String etiquetaEstado(Map<String, Object> pago) {
+        String estado = nz((String) pago.get("estado"));
+        if (!esPagado(pago)) {
+            return estado;
+        }
+        double[] cuenta = datos.cuentas.get(entero(pago.get("id_pedido")));
+        if (cuenta == null || cuenta[0] <= 0) {
+            return estado;
+        }
+        return cuenta[1] + 0.01 >= cuenta[0] ? "Pagado" : "Adelanto";
+    }
+
     private static boolean esPagado(Map<String, Object> p) {
-        return "Pagado".equalsIgnoreCase(String.valueOf(p.get("estado")));
+        String e = String.valueOf(p.get("estado"));
+        return "Pagado".equalsIgnoreCase(e) || "Adelanto".equalsIgnoreCase(e);
     }
 
     private static String tres(int n) {
@@ -430,7 +455,7 @@ public class PanelPagos extends ModuloBase {
                 continue;
             }
             filas.add(new Object[]{p.get("id_pago"), p.get("id_pedido"), dos(num(p.get("monto"))),
-                    nz((String) p.get("metodo_pago")), fechaBonita(p.get("fecha")), nz((String) p.get("estado"))});
+                    nz((String) p.get("metodo_pago")), fechaBonita(p.get("fecha")), etiquetaEstado(p)});
         }
         tabla.setFilas(filas);
         if (filas.isEmpty() && (idPago > 0 || idPedido > 0)) {
@@ -456,7 +481,7 @@ public class PanelPagos extends ModuloBase {
                 + "\nMonto: " + Estilo.soles(num(p.get("monto")))
                 + "\nMétodo de pago: " + nz((String) p.get("metodo_pago"))
                 + "\nFecha: " + fechaBonita(p.get("fecha"))
-                + "\nEstado: " + nz((String) p.get("estado")) + cuenta);
+                + "\nEstado: " + etiquetaEstado(p) + cuenta);
     }
 
     private void limpiar() {
@@ -507,10 +532,16 @@ public class PanelPagos extends ModuloBase {
 
         if (despues > antes + 0.001) {
             double restante = Math.max(0, saldo - monto);
+            // Si el pedido quedó pagado por completo, la venta se registra sola.
+            boolean ventaAutomatica = false;
+            if (restante <= 0.01) {
+                controlador.VentaOperaciones.registrarVenta(ped.id);
+                ventaAutomatica = true;
+            }
             aviso("Pago registrado correctamente.\nPedido N.° " + ped.id + " – Monto: " + Estilo.soles(monto)
                     + "\nSaldo pendiente: " + Estilo.soles(restante)
-                    + (restante <= 0.01 ? "\n\nEl pedido quedó pagado por completo. Ya puede registrar su venta "
-                    + "en \"Ventas\"." : ""));
+                    + (ventaAutomatica ? "\n\nEl pedido quedó pagado por completo. Su venta se registró "
+                    + "automáticamente en \"Ventas\"." : ""));
             recargar(null);
             limpiar();
         } else {

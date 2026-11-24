@@ -225,6 +225,20 @@ public class PanelPedidos extends ModuloBase {
         });
 
         cargarCombos();
+
+        // Al volver a esta sección se vuelve a leer la base (por ejemplo, para ver lo registrado por el mesero).
+        addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && isShowing()) {
+                Opcion c = (Opcion) cmbCliente.getSelectedItem();
+                Opcion m = (Opcion) cmbMesero.getSelectedItem();
+                cargarCombos();
+                seleccionarOpcion(cmbCliente, c);
+                if (idMesero == null) {
+                    seleccionarOpcion(cmbMesero, m);
+                }
+                cargar();
+            }
+        });
         cargar();
     }
 
@@ -270,6 +284,18 @@ public class PanelPedidos extends ModuloBase {
             return LocalDate.parse(iso.length() > 10 ? iso.substring(0, 10) : iso).format(FECHA_UI);
         } catch (Exception e) {
             return iso;
+        }
+    }
+
+    private static void seleccionarOpcion(JComboBox<Opcion> cmb, Opcion previa) {
+        if (previa == null || previa.id <= 0) {
+            return;
+        }
+        for (int k = 0; k < cmb.getItemCount(); k++) {
+            if (cmb.getItemAt(k).id == previa.id) {
+                cmb.setSelectedIndex(k);
+                return;
+            }
         }
     }
 

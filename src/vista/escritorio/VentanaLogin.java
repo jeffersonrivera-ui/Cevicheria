@@ -17,7 +17,7 @@ public class VentanaLogin extends JFrame {
     public VentanaLogin() {
         super("Cevichería - Iniciar sesión");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(420, 460);
+        setSize(460, 520);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -27,47 +27,121 @@ public class VentanaLogin extends JFrame {
         JPanel tarjeta = Estilo.tarjeta();
         tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
         tarjeta.setBorder(new EmptyBorder(28, 32, 28, 32));
-        tarjeta.setPreferredSize(new Dimension(340, 380));
+        tarjeta.setPreferredSize(new Dimension(390, 440));
 
         JLabel titulo = Estilo.etiqueta("Cevichería", Estilo.TITULO, Estilo.PRIMARIO_OSCURO);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         JLabel sub = Estilo.etiqueta("Inicia sesión para continuar", Estilo.FUENTE, Estilo.TEXTO_SUAVE);
         sub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblUsuario = Estilo.etiqueta("Usuario", Estilo.NEGRITA, Estilo.TEXTO);
-        lblUsuario.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel lblClave = Estilo.etiqueta("Contraseña", Estilo.NEGRITA, Estilo.TEXTO);
-        lblClave.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         for (JTextField campo : new JTextField[]{txtUsuario, txtClave}) {
             campo.setFont(Estilo.FUENTE);
-            campo.setAlignmentX(Component.LEFT_ALIGNMENT);
-            campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-            campo.setPreferredSize(new Dimension(260, 36));
+            campo.setPreferredSize(new Dimension(300, 38));
+            campo.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(0xCBD5E8)), new EmptyBorder(4, 10, 4, 10)));
         }
+        btnIngresar.setPreferredSize(new Dimension(300, 42));
 
-        btnIngresar.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnIngresar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        // Cada bloque (etiqueta + campo) ocupa el mismo ancho y queda centrado en la tarjeta.
+        JPanel bloqueUsuario = bloque("Usuario", txtUsuario);
+        // Campo de contraseña con el ojo a la derecha para ver u ocultar lo escrito.
+        final char caracterOculto = txtClave.getEchoChar();
+        BotonOjo ojo = new BotonOjo();
+        txtClave.setBorder(new EmptyBorder(4, 10, 4, 4));
+        JPanel cajaClave = new JPanel(new BorderLayout());
+        cajaClave.setBackground(Color.WHITE);
+        cajaClave.setBorder(BorderFactory.createLineBorder(new Color(0xCBD5E8)));
+        cajaClave.setPreferredSize(new Dimension(300, 38));
+        cajaClave.add(txtClave, BorderLayout.CENTER);
+        cajaClave.add(ojo, BorderLayout.EAST);
+        ojo.addActionListener(e -> {
+            boolean ver = !ojo.isMostrando();
+            ojo.setMostrando(ver);
+            txtClave.setEchoChar(ver ? (char) 0 : caracterOculto);
+            txtClave.requestFocusInWindow();
+        });
+        JPanel bloqueClave = bloque("Contraseña", cajaClave);
+        JPanel bloqueBoton = new JPanel(new BorderLayout());
+        bloqueBoton.setOpaque(false);
+        bloqueBoton.add(btnIngresar, BorderLayout.CENTER);
+        bloqueBoton.setMaximumSize(new Dimension(300, 42));
+        bloqueBoton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        tarjeta.add(Box.createVerticalGlue());
         tarjeta.add(titulo);
-        tarjeta.add(Box.createVerticalStrut(4));
+        tarjeta.add(Box.createVerticalStrut(6));
         tarjeta.add(sub);
-        tarjeta.add(Box.createVerticalStrut(24));
-        tarjeta.add(lblUsuario);
-        tarjeta.add(Box.createVerticalStrut(4));
-        tarjeta.add(txtUsuario);
-        tarjeta.add(Box.createVerticalStrut(14));
-        tarjeta.add(lblClave);
-        tarjeta.add(Box.createVerticalStrut(4));
-        tarjeta.add(txtClave);
-        tarjeta.add(Box.createVerticalStrut(24));
-        tarjeta.add(btnIngresar);
+        tarjeta.add(Box.createVerticalStrut(30));
+        tarjeta.add(bloqueUsuario);
+        tarjeta.add(Box.createVerticalStrut(16));
+        tarjeta.add(bloqueClave);
+        tarjeta.add(Box.createVerticalStrut(28));
+        tarjeta.add(bloqueBoton);
+        tarjeta.add(Box.createVerticalGlue());
 
         fondo.add(tarjeta);
         setContentPane(fondo);
         getRootPane().setDefaultButton(btnIngresar);
 
         btnIngresar.addActionListener(e -> iniciarSesion());
+    }
+
+    // Botón con un ojo dibujado (tachado cuando la contraseña está oculta).
+    private static class BotonOjo extends JButton {
+        private boolean mostrando = false;
+
+        BotonOjo() {
+            setPreferredSize(new Dimension(40, 36));
+            setFocusable(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setToolTipText("Mostrar u ocultar la contraseña");
+        }
+
+        boolean isMostrando() {
+            return mostrando;
+        }
+
+        void setMostrando(boolean valor) {
+            mostrando = valor;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int cx = getWidth() / 2;
+            int cy = getHeight() / 2;
+            g2.setColor(mostrando ? Estilo.PRIMARIO : new Color(0x7B879E));
+            g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            // Contorno del ojo (dos arcos) y pupila.
+            java.awt.geom.Path2D ojo = new java.awt.geom.Path2D.Double();
+            ojo.moveTo(cx - 10, cy);
+            ojo.quadTo(cx, cy - 11, cx + 10, cy);
+            ojo.quadTo(cx, cy + 11, cx - 10, cy);
+            g2.draw(ojo);
+            g2.fillOval(cx - 3, cy - 3, 6, 6);
+            if (!mostrando) {
+                g2.setColor(new Color(0x7B879E));
+                g2.drawLine(cx - 9, cy + 8, cx + 9, cy - 8);
+            }
+            g2.dispose();
+        }
+    }
+
+    // Etiqueta arriba y campo debajo, ambos del mismo ancho y alineados a la izquierda entre sí.
+    private JPanel bloque(String texto, JComponent campo) {
+        JPanel p = new JPanel(new BorderLayout(0, 6));
+        p.setOpaque(false);
+        JLabel etiqueta = Estilo.etiqueta(texto, Estilo.NEGRITA, Estilo.TEXTO);
+        p.add(etiqueta, BorderLayout.NORTH);
+        p.add(campo, BorderLayout.CENTER);
+        p.setMaximumSize(new Dimension(300, 70));
+        p.setPreferredSize(new Dimension(300, 70));
+        p.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return p;
     }
 
     private void iniciarSesion() {

@@ -6,8 +6,7 @@ import java.util.Map;
 public interface CompraDAO {
 
     int registrarCompra(int idIngrediente, double cantidad, double precioUnitario);
-
+    int registrarCompra(int idIngrediente, double cantidad, double precioUnitario, Integer idProveedor);
     List<Map<String, Object>> listarCompras();
-
     List<Map<String, Object>> buscarCompra(int idCompra);
 }

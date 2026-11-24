@@ -18,13 +18,20 @@ public class CompraDAOImpl implements CompraDAO {
 
     @Override
     public int registrarCompra(int idIngrediente, double cantidad, double precioUnitario) {
+        return registrarCompra(idIngrediente, cantidad, precioUnitario, null);
+    }
+
+    @Override
+    public int registrarCompra(int idIngrediente, double cantidad, double precioUnitario, Integer idProveedor) {
 
         double total = cantidad * precioUnitario;
 
         String sqlVerificar = "SELECT id_ingrediente FROM ingredientes WHERE id_ingrediente = ? FOR UPDATE";
         //«Buscar el ingrediente por su ID y bloquear su registro mientras se realiza la transacción».
 
-        String sqlCompra = "INSERT INTO compras (total) VALUES (?)";
+        String sqlCompra = idProveedor == null
+                ? "INSERT INTO compras (total) VALUES (?)"
+                : "INSERT INTO compras (total, id_proveedor) VALUES (?, ?)";
         //«Insertar una nueva compra en la tabla compras, guardando su total».
 
         String sqlDetalle = "INSERT INTO detalle_compra (id_compra, id_ingrediente, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
@@ -59,6 +66,9 @@ public class CompraDAOImpl implements CompraDAO {
                 try (PreparedStatement registrar = connection.prepareStatement(sqlCompra, Statement.RETURN_GENERATED_KEYS)) {
 
                     registrar.setDouble(1, total);
+                    if (idProveedor != null) {
+                        registrar.setInt(2, idProveedor);
+                    }
 
                     if (registrar.executeUpdate() == 0) {
                         connection.rollback();
@@ -124,8 +134,9 @@ public class CompraDAOImpl implements CompraDAO {
         List<Map<String, Object>> compras = new ArrayList<>();
 
         String sql = "SELECT c.id_compra, c.fecha, c.total,dc.id_ingrediente, i.nombre, i.unidad, " +
-                "dc.cantidad, dc.precio_unitario FROM compras c INNER JOIN detalle_compra dc " +
+                "dc.cantidad, dc.precio_unitario, c.id_proveedor, pr.nombre AS proveedor FROM compras c INNER JOIN detalle_compra dc " +
                 "ON c.id_compra = dc.id_compra INNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
+                "LEFT JOIN proveedores pr ON c.id_proveedor = pr.id_proveedor " +
                 "ORDER BY c.id_compra DESC";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -143,6 +154,8 @@ public class CompraDAOImpl implements CompraDAO {
                 compra.put("unidad", rs.getString("unidad"));
                 compra.put("cantidad", rs.getDouble("cantidad"));
                 compra.put("precio_unitario", rs.getDouble("precio_unitario"));
+                compra.put("id_proveedor", rs.getObject("id_proveedor"));
+                compra.put("proveedor", rs.getString("proveedor"));
 
                 compras.add(compra);
             }
@@ -160,9 +173,10 @@ public class CompraDAOImpl implements CompraDAO {
         List<Map<String, Object>> compras = new ArrayList<>();
 
         String sql = "SELECT c.id_compra, c.fecha, c.total,dc.id_ingrediente, i.nombre, i.unidad, " +
-                "dc.cantidad, dc.precio_unitario FROM compras c " +
+                "dc.cantidad, dc.precio_unitario, c.id_proveedor, pr.nombre AS proveedor FROM compras c " +
                 "INNER JOIN detalle_compra dc ON c.id_compra = dc.id_compra " +
                 "INNER JOIN ingredientes i ON dc.id_ingrediente = i.id_ingrediente " +
+                "LEFT JOIN proveedores pr ON c.id_proveedor = pr.id_proveedor " +
                 "WHERE c.id_compra = ?";
 
         try (Connection connection = ConexionBD.getConnection();
@@ -183,6 +197,10 @@ public class CompraDAOImpl implements CompraDAO {
                     compra.put("unidad", rs.getString("unidad"));
                     compra.put("cantidad", rs.getDouble("cantidad"));
                     compra.put("precio_unitario", rs.getDouble("precio_unitario"));
+                    compra.put("id_proveedor", rs.getObject("id_proveedor"));
+                    compra.put("proveedor", rs.getString("proveedor"));
+                compra.put("id_proveedor", rs.getObject("id_proveedor"));
+                compra.put("proveedor", rs.getString("proveedor"));
 
                     compras.add(compra);
                 }
