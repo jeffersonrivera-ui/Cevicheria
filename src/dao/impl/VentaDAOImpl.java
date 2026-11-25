@@ -23,7 +23,8 @@ public class VentaDAOImpl implements VentaDAO {
 
         String sqlPago = "SELECT COALESCE(SUM(monto), 0) AS total_pagado FROM pagos WHERE id_pedido = ? AND estado IN ('Pagado', 'Adelanto')";
 
-        String sqlTotal = "SELECT COALESCE(SUM(t.cantidad * t.precio), 0) AS total FROM (SELECT id_pedido, cantidad, precio FROM detalle_pedido UNION ALL SELECT id_pedido, cantidad, precio FROM detalle_bebida) t WHERE t.id_pedido = ?";
+        String sqlTotal = "SELECT COALESCE(SUM(t.cantidad * t.precio), 0) AS total FROM (SELECT id_pedido, cantidad, precio FROM detalle_pedido " +
+                "UNION ALL SELECT id_pedido, cantidad, precio FROM detalle_bebida) t WHERE t.id_pedido = ?";
 
         String sqlVerificar = "SELECT id_venta FROM ventas WHERE id_pedido = ?";
 
@@ -34,14 +35,18 @@ public class VentaDAOImpl implements VentaDAO {
             connection.setAutoCommit(false);
 
             try {
-                // Verificar y bloquear el pedido
+                //Comprueba el estado/
+
                 String estadoPedido;
 
                 try (PreparedStatement ps = connection.prepareStatement(sqlPedido)) {
+
                     ps.setInt(1, idPedido);
 
                     try (ResultSet rs = ps.executeQuery()) {
+
                         if (!rs.next()) {
+
                             connection.rollback();
                             System.out.println("El pedido no existe.");
                             return null;
@@ -52,18 +57,21 @@ public class VentaDAOImpl implements VentaDAO {
                 }
 
                 if (estadoPedido == null || estadoPedido.equalsIgnoreCase("CANCELADO")) {
+
                     connection.rollback();
                     System.out.println("No se puede registrar una venta de un pedido cancelado.");
                     return null;
                 }
+                //calcula los pagos del pedido/
 
-                // Calcular los pagos realizados
                 double totalPagado = 0;
 
                 try (PreparedStatement ps = connection.prepareStatement(sqlPago)) {
+
                     ps.setInt(1, idPedido);
 
                     try (ResultSet rs = ps.executeQuery()) {
+
                         if (rs.next()) {
                             totalPagado = rs.getDouble("total_pagado");
                         }
@@ -74,10 +82,13 @@ public class VentaDAOImpl implements VentaDAO {
                 double total = 0;
 
                 try (PreparedStatement ps = connection.prepareStatement(sqlTotal)) {
+
                     ps.setInt(1, idPedido);
 
                     try (ResultSet rs = ps.executeQuery()) {
+
                         if (rs.next()) {
+
                             total = rs.getDouble("total");
                         }
                     }
@@ -85,6 +96,7 @@ public class VentaDAOImpl implements VentaDAO {
 
                 if (total <= 0) {
                     connection.rollback();
+                    
                     System.out.println("El pedido no tiene detalles registrados.");
                     return null;
                 }

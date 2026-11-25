@@ -9,7 +9,6 @@ public class PagoOperaciones {
 
     private static final PagoDAO pagoDAO = new PagoDAOImpl();
 
-    // REGISTRAR PAGO
     public static void registrarPago(int idPedido, double monto, String metodoPago) {
 
         if (idPedido <= 0) {
@@ -34,7 +33,7 @@ public class PagoOperaciones {
             return;
         }
 
-        System.out.println("\n========== PAGO REGISTRADO ==========");
+        System.out.println("========== PAGO REGISTRADO ==========");
         System.out.println("Código de pago: " + resultado.get("id_pago"));
         System.out.println("Código de pedido: " + resultado.get("id_pedido"));
         System.out.println("Monto pagado: S/ " + resultado.get("monto"));
@@ -45,7 +44,6 @@ public class PagoOperaciones {
         System.out.println("=====================================");
     }
 
-    // LISTAR PAGOS
     public static void listarPagos() {
 
         List<Map<String, Object>> pagos = pagoDAO.listarPagos();
@@ -58,6 +56,7 @@ public class PagoOperaciones {
         System.out.println("========== LISTA DE PAGOS ==========");
 
         for (Map<String, Object> pago : pagos) {
+
             System.out.println("-----------------------------------");
             System.out.println("Código de pago: " + pago.get("id_pago"));
             System.out.println("Código de pedido: " + pago.get("id_pedido"));
@@ -70,7 +69,6 @@ public class PagoOperaciones {
         System.out.println("===================================");
     }
 
-    // BUSCAR PAGO
     public static void buscarPago(int idPago) {
 
         if (idPago <= 0) {

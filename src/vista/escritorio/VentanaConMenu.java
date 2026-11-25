@@ -15,6 +15,7 @@ public abstract class VentanaConMenu extends JFrame {
     private final CardLayout cartas = new CardLayout();
     private final JPanel contenido = new JPanel(cartas);
     private final JPanel menu;
+    private final JPanel pie = new JPanel();
     private final Map<String, ItemMenu> items = new LinkedHashMap<>();
     private final Map<String, String> grupoDeSeccion = new LinkedHashMap<>();
     private final JLabel lblGrupo = Estilo.etiqueta("", Estilo.FUENTE, Estilo.TEXTO_SUAVE);
@@ -87,7 +88,9 @@ public abstract class VentanaConMenu extends JFrame {
         setMinimumSize(new Dimension(1100, 650));
         setLocationRelativeTo(null);
 
-        menu = new JPanel() {
+        // Barra lateral: el degradado va en el contenedor; la lista de secciones se desplaza
+        // con scroll cuando la ventana es pequeña y el usuario / "Cerrar sesión" quedan fijos abajo.
+        JPanel lateral = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -96,9 +99,85 @@ public abstract class VentanaConMenu extends JFrame {
                 g2.dispose();
             }
         };
+        lateral.setPreferredSize(new Dimension(230, 0));
+
+        class PanelDesplazable extends JPanel implements Scrollable {
+            public Dimension getPreferredScrollableViewportSize() {
+                return getPreferredSize();
+            }
+
+            public int getScrollableUnitIncrement(Rectangle r, int orientation, int direction) {
+                return 24;
+            }
+
+            public int getScrollableBlockIncrement(Rectangle r, int orientation, int direction) {
+                return Math.max(r.height - 40, 24);
+            }
+
+            public boolean getScrollableTracksViewportWidth() {
+                return true;
+            }
+
+            public boolean getScrollableTracksViewportHeight() {
+                return false;
+            }
+        }
+        menu = new PanelDesplazable();
+        menu.setOpaque(false);
         menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
-        menu.setBorder(new EmptyBorder(18, 12, 14, 12));
-        menu.setPreferredSize(new Dimension(230, 0));
+        menu.setBorder(new EmptyBorder(18, 12, 6, 12));
+
+        JScrollPane desplazamiento = new JScrollPane(menu,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        desplazamiento.setBorder(null);
+        desplazamiento.setOpaque(false);
+        desplazamiento.getViewport().setOpaque(false);
+        desplazamiento.getVerticalScrollBar().setUnitIncrement(24);
+        desplazamiento.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+        desplazamiento.getVerticalScrollBar().setOpaque(false);
+        desplazamiento.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                thumbColor = new Color(255, 255, 255, 90);
+                trackColor = new Color(0, 0, 0, 0);
+            }
+
+            @Override
+            protected JButton createDecreaseButton(int orientation) {
+                return botonVacio();
+            }
+
+            @Override
+            protected JButton createIncreaseButton(int orientation) {
+                return botonVacio();
+            }
+
+            private JButton botonVacio() {
+                JButton b = new JButton();
+                b.setPreferredSize(new Dimension(0, 0));
+                return b;
+            }
+
+            @Override
+            protected void paintTrack(Graphics g, JComponent c, Rectangle r) {
+            }
+
+            @Override
+            protected void paintThumb(Graphics g, JComponent c, Rectangle r) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(thumbColor);
+                g2.fillRoundRect(r.x + 1, r.y, r.width - 2, r.height, 6, 6);
+                g2.dispose();
+            }
+        });
+
+        pie.setOpaque(false);
+        pie.setLayout(new BoxLayout(pie, BoxLayout.Y_AXIS));
+        pie.setBorder(new EmptyBorder(8, 12, 14, 12));
+
+        lateral.add(desplazamiento, BorderLayout.CENTER);
+        lateral.add(pie, BorderLayout.SOUTH);
 
         JPanel logo = new JPanel(new BorderLayout(10, 0));
         logo.setOpaque(false);
@@ -142,7 +221,7 @@ public abstract class VentanaConMenu extends JFrame {
         derecha.add(contenido, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
-        add(menu, BorderLayout.WEST);
+        add(lateral, BorderLayout.WEST);
         add(derecha, BorderLayout.CENTER);
     }
 
@@ -192,8 +271,6 @@ public abstract class VentanaConMenu extends JFrame {
     }
 
     protected void terminarMenu() {
-        menu.add(Box.createVerticalGlue());
-
         JPanel usuarioCard = new JPanel(new BorderLayout(8, 0));
         usuarioCard.setOpaque(false);
         usuarioCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
@@ -205,14 +282,14 @@ public abstract class VentanaConMenu extends JFrame {
         t.add(Estilo.etiqueta(usuario.getNombreUsuario(), Estilo.NEGRITA, Color.WHITE));
         t.add(Estilo.etiqueta(rol, Estilo.PEQUENA, new Color(0xCFE0FF)));
         usuarioCard.add(t, BorderLayout.CENTER);
-        menu.add(usuarioCard);
-        menu.add(Box.createVerticalStrut(10));
+        pie.add(usuarioCard);
+        pie.add(Box.createVerticalStrut(10));
 
         JButton salir = Estilo.boton("Cerrar sesión", Estilo.PELIGRO);
         salir.setAlignmentX(Component.LEFT_ALIGNMENT);
         salir.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         salir.addActionListener(e -> cerrarSesion());
-        menu.add(salir);
+        pie.add(salir);
 
         if (!items.isEmpty()) {
             mostrar(items.keySet().iterator().next());

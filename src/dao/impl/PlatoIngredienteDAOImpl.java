@@ -20,14 +20,9 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
     public boolean insertar(int idPlato, int idIngrediente, double cantidad) {
 
         String sqlPlato = "SELECT id_plato FROM platos WHERE id_plato = ?";
-        String sqlIngrediente =
-                "SELECT id_ingrediente FROM ingredientes WHERE id_ingrediente = ?";
-        String sqlDuplicado =
-                "SELECT id_plato_ingrediente FROM plato_ingrediente " +
-                        "WHERE id_plato = ? AND id_ingrediente = ?";
-        String sqlInsertar =
-                "INSERT INTO plato_ingrediente " +
-                        "(id_plato, id_ingrediente, cantidad) VALUES (?, ?, ?)";
+        String sqlIngrediente = "SELECT id_ingrediente FROM ingredientes WHERE id_ingrediente = ?";
+        String sqlDuplicado = "SELECT id_plato_ingrediente FROM plato_ingrediente WHERE id_plato = ? AND id_ingrediente = ?";
+        String sqlInsertar = "INSERT INTO plato_ingrediente (id_plato, id_ingrediente, cantidad) VALUES (?, ?, ?)";
 
         try (Connection con = ConexionBD.getConnection()) {
 
@@ -110,14 +105,11 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
         List<PlatoIngrediente> lista = new ArrayList<>();
 
         String sql =
-                "SELECT p.id_plato, p.nombre AS nombre_plato, p.precio, " +
-                        "i.id_ingrediente, i.nombre AS nombre_ingrediente, " +
-                        "i.unidad, i.stock, pi.cantidad " +
-                        "FROM plato_ingrediente pi " +
+                "SELECT p.id_plato, p.nombre AS nombre_plato, p.precio, i.id_ingrediente, i.nombre AS nombre_ingrediente, " +
+                        "i.unidad, i.stock, pi.cantidad FROM plato_ingrediente pi " +
                         "INNER JOIN platos p ON pi.id_plato = p.id_plato " +
                         "INNER JOIN ingredientes i ON pi.id_ingrediente = i.id_ingrediente " +
-                        "WHERE pi.id_plato = ? " +
-                        "ORDER BY i.nombre";
+                        "WHERE pi.id_plato = ? ORDER BY i.nombre";
 
         try (Connection con = ConexionBD.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -163,17 +155,12 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
     public boolean actualizarCantidad(
             int idPlato, int idIngrediente, double cantidad) {
 
-        String sqlValidar =
-                "SELECT id_plato_ingrediente FROM plato_ingrediente " +
-                        "WHERE id_plato = ? AND id_ingrediente = ?";
+        String sqlValidar = "SELECT id_plato_ingrediente FROM plato_ingrediente WHERE id_plato = ? AND id_ingrediente = ?";
 
-        String sqlPedidos =
-                "SELECT COUNT(*) AS total FROM detalle_pedido dp " +
-                        "INNER JOIN pedidos p ON dp.id_pedido = p.id_pedido " +
+        String sqlPedidos = "SELECT COUNT(*) AS total FROM detalle_pedido dp INNER JOIN pedidos p ON dp.id_pedido = p.id_pedido " +
                         "WHERE dp.id_plato = ? AND p.inventario_descontado = TRUE";
 
-        String sqlActualizar =
-                "UPDATE plato_ingrediente SET cantidad = ? " +
+        String sqlActualizar = "UPDATE plato_ingrediente SET cantidad = ? " +
                         "WHERE id_plato = ? AND id_ingrediente = ?";
 
         try (Connection con = ConexionBD.getConnection()) {
@@ -199,6 +186,7 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
                     ps.setInt(1, idPlato);
 
                     try (ResultSet rs = ps.executeQuery()) {
+
                         rs.next();
 
                         if (rs.getInt("total") > 0) {
@@ -209,6 +197,7 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
                 }
 
                 // Actualizar cantidad.
+
                 try (PreparedStatement ps = con.prepareStatement(sqlActualizar)) {
                     ps.setDouble(1, cantidad);
                     ps.setInt(2, idPlato);
@@ -246,10 +235,9 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
 
         String sqlValidar = "SELECT id_plato_ingrediente FROM plato_ingrediente WHERE id_plato = ? AND id_ingrediente = ?";
 
-        String sqlPedidos = "SELECT COUNT(*) AS total FROM detalle_pedido dp INNER JOIN pedidos p ON dp.id_pedido = p.id_pedido " + "WHERE dp.id_plato = ? AND p.inventario_descontado = TRUE";
+        String sqlPedidos = "SELECT COUNT(*) AS total FROM detalle_pedido dp INNER JOIN pedidos p ON dp.id_pedido = p.id_pedido WHERE dp.id_plato = ? AND p.inventario_descontado = TRUE";
 
-        String sqlExclusiones = "SELECT COUNT(*) AS total FROM detalle_pedido dp  JOIN detalle_ingrediente_excluido de " +
-                        "ON dp.id_detalle = de.id_detalle WHERE dp.id_plato = ? AND de.id_ingrediente = ?";
+        String sqlExclusiones = "SELECT COUNT(*) AS total FROM detalle_pedido dp  JOIN detalle_ingrediente_excluido de ON dp.id_detalle = de.id_detalle WHERE dp.id_plato = ? AND de.id_ingrediente = ?";
 
         String sqlEliminar = "DELETE FROM plato_ingrediente WHERE id_plato = ? AND id_ingrediente = ?";
 
@@ -258,6 +246,7 @@ public class PlatoIngredienteDAOImpl implements PlatoIngredienteDAO {
             con.setAutoCommit(false);
 
             try {
+
                 // Verificar que exista la relación.
                 try (PreparedStatement ps = con.prepareStatement(sqlValidar)) {
                     ps.setInt(1, idPlato);

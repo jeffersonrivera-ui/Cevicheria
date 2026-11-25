@@ -10,7 +10,6 @@ public class PedidosOperaciones {
 
     private static final PedidoDAO pedidoDAO = new PedidoDAOImpl();
 
-    // REGISTRAR PEDIDO
     public static int registrarPedido(int idCliente, int idMesero) {
 
         int id = pedidoDAO.insertar(idCliente, idMesero);
@@ -34,7 +33,6 @@ public class PedidosOperaciones {
         return id;
     }
 
-    // LISTAR PEDIDOS
     public static void listarPedidos() {
 
         List<Pedido> pedidos = pedidoDAO.listar();
@@ -63,7 +61,6 @@ public class PedidosOperaciones {
         }
     }
 
-    // BUSCAR PEDIDO
     public static void buscarPedido(int id) {
 
         Pedido pedido = pedidoDAO.buscarPorId(id);
@@ -87,6 +84,7 @@ public class PedidosOperaciones {
             System.out.println("No se encontró el pedido.");
         }
     }
+
     // BUSCAR PEDIDO Y DEVOLVER OBJETO
     public static Pedido buscarPedidoObjeto(int idPedido) {
 
@@ -97,7 +95,7 @@ public class PedidosOperaciones {
         return pedidoDAO.buscarPorId(idPedido);
     }
 
-    // ACTUALIZAR ESTADO
+
     public static void actualizarEstadoPedido(int id, String estado) {
 
         if (estado == null || estado.trim().isEmpty()) {
@@ -108,13 +106,13 @@ public class PedidosOperaciones {
         pedidoDAO.actualizarEstado(id, estado);
     }
 
-    // ELIMINAR PEDIDO
+
     public static void eliminarPedido(int id) {
 
         pedidoDAO.eliminar(id);
     }
 
-    // VERIFICAR SI EXISTE UN PEDIDO
+
     public static Boolean existePedido(int id) {
 
         return pedidoDAO.existe(id);

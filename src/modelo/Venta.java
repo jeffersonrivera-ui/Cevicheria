@@ -16,10 +16,11 @@ public class Venta {
 
     public void mostrarInformacion() {
         System.out.println("ID de venta: " + id);
-        System.out.println("modelo.Pedido: " + pedido.getId());
-        System.out.println("Total: " + total + "soles" );
+        System.out.println("Pedido: " + pedido.getId());
+        System.out.println("Total: " + total + "soles");
         System.out.println("Fecha: " + fecha);
     }
+
     public int getId() {
         return id;
     }

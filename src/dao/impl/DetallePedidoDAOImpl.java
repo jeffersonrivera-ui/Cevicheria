@@ -56,9 +56,8 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
                     }
                 }
 
-                if (estado == null ||
-                        (!estado.equalsIgnoreCase("PENDIENTE")
-                                && !estado.equalsIgnoreCase("EN PREPARACION"))) {
+                if (estado == null || (!estado.equalsIgnoreCase("PENDIENTE") && !estado.equalsIgnoreCase("EN PREPARACION"))) {
+
                     System.out.println("No se pueden agregar platos a un pedido finalizado.");
                     connection.rollback();
                     return -1;
@@ -198,8 +197,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
             return false;
         }
 
-        String sqlValidar = "SELECT p.id_pedido, p.estado FROM pedidos p INNER JOIN detalle_pedido d ON p.id_pedido = d.id_pedido " +
-                "WHERE d.id_detalle = ? FOR UPDATE";
+        String sqlValidar = "SELECT p.id_pedido, p.estado FROM pedidos p INNER JOIN detalle_pedido d ON p.id_pedido = d.id_pedido WHERE d.id_detalle = ? FOR UPDATE";
 
         String sqlActualizar = "UPDATE detalle_pedido SET cantidad = ?, observacion = ? WHERE id_detalle = ?";
 
@@ -226,9 +224,8 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
                     }
                 }
 
-                if (estado == null ||
-                        (!estado.equalsIgnoreCase("PENDIENTE")
-                                && !estado.equalsIgnoreCase("EN PREPARACION"))) {
+                if (estado == null || (!estado.equalsIgnoreCase("PENDIENTE") && !estado.equalsIgnoreCase("EN PREPARACION"))) {
+
                     System.out.println("No se puede modificar un pedido finalizado.");
                     connection.rollback();
                     return false;
@@ -273,16 +270,13 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
     @Override
     public boolean eliminar(int idDetalle) {
 
-        String sqlValidar = "SELECT p.id_pedido, p.estado " +
-                "FROM pedidos p " +
+        String sqlValidar = "SELECT p.id_pedido, p.estado FROM pedidos p " +
                 "INNER JOIN detalle_pedido d ON p.id_pedido = d.id_pedido " +
                 "WHERE d.id_detalle = ? FOR UPDATE";
 
-        String sqlExclusiones =
-                "DELETE FROM detalle_ingrediente_excluido WHERE id_detalle = ?";
+        String sqlExclusiones = "DELETE FROM detalle_ingrediente_excluido WHERE id_detalle = ?";
 
-        String sqlEliminar =
-                "DELETE FROM detalle_pedido WHERE id_detalle = ?";
+        String sqlEliminar = "DELETE FROM detalle_pedido WHERE id_detalle = ?";
 
         try (Connection connection = ConexionBD.getConnection()) {
 
@@ -307,9 +301,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
                     }
                 }
 
-                if (estado == null ||
-                        (!estado.equalsIgnoreCase("PENDIENTE")
-                                && !estado.equalsIgnoreCase("EN PREPARACION"))) {
+                if (estado == null || (!estado.equalsIgnoreCase("PENDIENTE") && !estado.equalsIgnoreCase("EN PREPARACION"))) {
                     System.out.println("No se puede eliminar un detalle de un pedido finalizado.");
                     connection.rollback();
                     return false;
@@ -380,8 +372,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
         return -1;
     }
 
-    private boolean pedidoTienePagos(Connection connection, int idPedido)
-            throws SQLException {
+    private boolean pedidoTienePagos(Connection connection, int idPedido) throws SQLException {
 
         String sql = "SELECT COUNT(*) FROM pagos WHERE id_pedido = ?";
 
@@ -399,10 +390,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
 
         int idPedido = rs.getInt("id_pedido");
 
-        Pedido pedido = new Pedido(
-                idPedido,
-                null,
-                null,
+        Pedido pedido = new Pedido(idPedido, null, null,
                 rs.getString("fecha"),
                 rs.getString("estado")
         );
@@ -414,9 +402,7 @@ public class DetallePedidoDAOImpl implements DetallePedidoDAO {
         );
 
         return new DetallePedido(
-                rs.getInt("id_detalle"),
-                pedido,
-                plato,
+                rs.getInt("id_detalle"), pedido, plato,
                 rs.getInt("cantidad"),
                 rs.getDouble("precio"),
                 rs.getString("observacion")

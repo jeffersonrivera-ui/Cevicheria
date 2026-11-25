@@ -17,7 +17,7 @@ public class EmpleadosOperaciones {
     private static final EmpleadoDAO empleadoDAO = new EmpleadoDAOImpl();
 
     public static void registrarEmpleado(String nombres, String apellidos, String telefono, String cargo, String direccion, String dni, String contactoEmergencia, String correo, String distrito, String provincia, String departamento, String codigoPostal, String referenciaDireccion,
-            double salario, String turnoLaboral, LocalDate fechaContratacion) {
+                                         double salario, String turnoLaboral, LocalDate fechaContratacion) {
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty() || dni == null || dni.trim().isEmpty() || cargo == null || cargo.trim().isEmpty()) {
 
@@ -27,7 +27,7 @@ public class EmpleadosOperaciones {
 
 
         if (!cargo.equalsIgnoreCase("MESERO")
-                && !cargo.equalsIgnoreCase("COCINERO")&& !cargo.equalsIgnoreCase("ADMINISTRADOR")) {
+                && !cargo.equalsIgnoreCase("COCINERO") && !cargo.equalsIgnoreCase("ADMINISTRADOR")) {
 
             System.out.println("El cargo ingresado no es valido.");
             return;
@@ -49,10 +49,10 @@ public class EmpleadosOperaciones {
 
             empleado = new Mesero(0, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, "ACTIVO");
 
-        } else if (cargo.equals("COCINERO")){
+        } else if (cargo.equals("COCINERO")) {
 
             empleado = new Cocinero(0, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, "ACTIVO");
-        }else{
+        } else {
             empleado = new Administrador(0, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, "ACTIVO");
         }
 
@@ -115,23 +115,9 @@ public class EmpleadosOperaciones {
         }
     }
 
-    public static void actualizarEmpleado (int id,
-    String nombres,
-    String apellidos,
-    String cargo,
-    String telefono,
-    String direccion,
-    String dni,
-    String contactoEmergencia,
-    String correo,
-    String distrito,
-    String provincia,
-    String departamento,
-    String codigoPostal,
-    String referenciaDireccion,
-    double salario,
-    String turnoLaboral,
-    LocalDate fechaContratacion) {
+    public static void actualizarEmpleado(int id, String nombres, String apellidos, String cargo, String telefono, String direccion,
+                                          String dni, String contactoEmergencia, String correo, String distrito, String provincia, String departamento, String codigoPostal,
+                                          String referenciaDireccion, double salario, String turnoLaboral, LocalDate fechaContratacion) {
 
         Empleado empleadoActual = empleadoDAO.buscarPorId(id);
 
@@ -163,15 +149,15 @@ public class EmpleadosOperaciones {
             empleado = new Mesero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral()
             );
 
-        }else  if (cargo.equals("COCINERO")) {
+        } else if (cargo.equals("COCINERO")) {
 
             empleado = new Cocinero(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral()
             );
-        }else if (cargo.equals("ADMINISTRADOR")) {
+        } else if (cargo.equals("ADMINISTRADOR")) {
 
             empleado = new Administrador(id, nombres, telefono, apellidos, direccion, dni, contactoEmergencia, correo, distrito, provincia, departamento, codigoPostal, referenciaDireccion, salario, turnoLaboral, fechaContratacion, empleadoActual.getEstadoLaboral());
 
-        }else {
+        } else {
             System.out.println("Cargo no válido.");
             return;
         }
@@ -214,6 +200,7 @@ public class EmpleadosOperaciones {
             System.out.println("No se encontro el empleado o no se pudo actualizar.");
         }
     }
+
     public static boolean existeEmpleado(int id) {
 
         return empleadoDAO.existe(id);

@@ -10,19 +10,13 @@ import modelo.Cliente;
 
 public class ClienteOperaciones {
 
-    // Conexión con la interfaz DAO
+    /*conexion con la interfaz clienteDAO*/
+
     private static final ClienteDAO clienteDAO = new ClienteDAOImpl();
 
-    // ==========================================
-    // REGISTRAR CLIENTE
-    // ==========================================
+    public static void registrarCliente(String nombres, String apellidos, String telefono, String correo, String direccion, String referencia, String distrito) {
 
-    public static void registrarCliente(String nombres, String apellidos, String telefono) {
-        registrarCliente(nombres, apellidos, telefono, null, null, null);
-    }
-
-    public static void registrarCliente(String nombres, String apellidos, String telefono,
-                                        String direccion, String referencia, String distrito) {
+                           //o                         //o                 //o
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty()) {
 
@@ -30,24 +24,21 @@ public class ClienteOperaciones {
             return;
         }
 
-        Cliente cliente = new Cliente(0, nombres.trim(), telefono, apellidos.trim(),
-                limpiar(direccion), limpiar(referencia), limpiar(distrito));
+        Cliente cliente = new Cliente(0, nombres.trim(), telefono, apellidos.trim(), limpiar(direccion), limpiar(referencia), limpiar(distrito), limpiar(correo));
 
         int id = clienteDAO.insertar(cliente);
 
         if (id > 0) {
             System.out.println("Cliente registrado correctamente.");
             System.out.println("ID generado: " + id);
+
         } else {
             System.out.println("No se pudo registrar el cliente.");
         }
     }
 
-    // ==========================================
-    // LISTAR CLIENTES
-    // ==========================================
-
     public static void listarClientes() {
+
         List<Cliente> clientes = clienteDAO.listar();
 
         if (clientes == null || clientes.isEmpty()) {
@@ -64,11 +55,9 @@ public class ClienteOperaciones {
         }
     }
 
-    // ==========================================
-    // BUSCAR CLIENTE
-    // ==========================================
 
     public static void buscarCliente(int id) {
+
         Cliente cliente = clienteDAO.buscarPorId(id);
 
         if (cliente != null) {
@@ -81,21 +70,8 @@ public class ClienteOperaciones {
         }
     }
 
-    // ==========================================
-    // ACTUALIZAR CLIENTE
-    // ==========================================
 
-    public static void actualizarCliente(int id, String nombres, String apellidos, String telefono) {
-        Cliente actual = clienteDAO.buscarPorId(id);
-        // Si solo se cambian los datos basicos, se conservan los datos de entrega.
-        actualizarCliente(id, nombres, apellidos, telefono,
-                actual == null ? null : actual.getDireccion(),
-                actual == null ? null : actual.getReferencia(),
-                actual == null ? null : actual.getDistrito());
-    }
-
-    public static void actualizarCliente(int id, String nombres, String apellidos, String telefono,
-                                         String direccion, String referencia, String distrito) {
+    public static void actualizarCliente(int id, String nombres, String apellidos, String telefono, String correo, String direccion, String referencia, String distrito) {
 
         if (nombres == null || nombres.trim().isEmpty() || apellidos == null || apellidos.trim().isEmpty()) {
 
@@ -113,14 +89,17 @@ public class ClienteOperaciones {
         }
 
         // Modificamos sus atributos
+
         cliente.setNombres(nombres.trim());
         cliente.setApellidos(apellidos.trim());
         cliente.setTelefono(telefono);
+        cliente.setCorreo(limpiar(correo));
         cliente.setDireccion(limpiar(direccion));
         cliente.setReferencia(limpiar(referencia));
         cliente.setDistrito(limpiar(distrito));
 
         // Enviamos el objeto actualizado al DAO
+
         if (clienteDAO.actualizar(cliente)) {
 
             System.out.println("Cliente actualizado correctamente.");
@@ -130,10 +109,6 @@ public class ClienteOperaciones {
             System.out.println("No se pudo actualizar el cliente.");
         }
     }
-
-    // ==========================================
-    // ELIMINAR CLIENTE
-    // ==========================================
 
     public static void eliminarCliente(int id) {
 
@@ -147,9 +122,7 @@ public class ClienteOperaciones {
         }
     }
 
-    // ==========================================
-    // VERIFICAR SI EXISTE CLIENTE
-    // ==========================================
+
 
     public static boolean existeCliente(int id) {
 
@@ -157,6 +130,8 @@ public class ClienteOperaciones {
     }
 
     private static String limpiar(String texto) {
+                                                       //si    //no
         return texto == null || texto.trim().isEmpty() ? null : texto.trim();
+                               //el texto, después de quitarle los espacios de los lados, quedó vacío"
     }
 }

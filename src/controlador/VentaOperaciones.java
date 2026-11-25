@@ -10,7 +10,6 @@ public class VentaOperaciones {
 
     private static final VentaDAO ventaDAO = new VentaDAOImpl();
 
-    // REGISTRAR VENTA
     public static void registrarVenta(int idPedido) {
 
         if (idPedido <= 0) {
@@ -31,7 +30,6 @@ public class VentaOperaciones {
         System.out.println("======================================");
     }
 
-    // LISTAR VENTAS
     public static void listarVentas() {
 
         List<Map<String, Object>> ventas = ventaDAO.listarVentas();
@@ -55,7 +53,7 @@ public class VentaOperaciones {
         System.out.println("====================================");
     }
 
-    // BUSCAR VENTA
+
     public static void buscarVenta(int idVenta) {
 
         if (idVenta <= 0) {

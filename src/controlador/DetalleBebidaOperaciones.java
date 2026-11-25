@@ -12,6 +12,7 @@ public class DetalleBebidaOperaciones {
     private static final DetalleBebidaDAO detalleBebidaDAO = new DetalleBebidaDAOImpl();
 
     // REGISTRAR BEBIDA EN UN PEDIDO
+
     public static int registrarDetalleBebida(int idPedido, int idBebida, int cantidad) {
 
         if (cantidad <= 0) {
@@ -37,6 +38,7 @@ public class DetalleBebidaOperaciones {
     }
 
     // LISTAR BEBIDAS DE UN PEDIDO
+
     public static void listarDetallesBebida(int idPedido) {
 
         List<DetalleBebida> detalles = detalleBebidaDAO.listarPorPedido(idPedido);
@@ -52,12 +54,13 @@ public class DetalleBebidaOperaciones {
         }
     }
 
-    // BUSCAR UN DETALLE DE BEBIDA
+
     public static DetalleBebida buscarDetalleBebida(int idDetalleBebida) {
         return detalleBebidaDAO.buscarPorId(idDetalleBebida);
     }
 
     // ACTUALIZAR LA CANTIDAD DE UNA BEBIDA DEL PEDIDO
+
     public static boolean actualizarCantidad(int idDetalleBebida, int cantidad) {
 
         if (cantidad <= 0) {
@@ -75,6 +78,7 @@ public class DetalleBebidaOperaciones {
     }
 
     // ELIMINAR BEBIDA DE UN PEDIDO
+
     public static void eliminarDetalleBebida(int idDetalleBebida) {
 
         if (idDetalleBebida <= 0) {
@@ -90,6 +94,7 @@ public class DetalleBebidaOperaciones {
     }
 
     // TOTAL DE BEBIDAS DE UN PEDIDO
+
     public static double calcularTotalBebidas(int idPedido) {
         return detalleBebidaDAO.calcularTotal(idPedido);
     }

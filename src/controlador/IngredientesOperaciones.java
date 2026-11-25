@@ -10,7 +10,6 @@ public class IngredientesOperaciones {
 
     private static final IngredientesDAO ingredienteDAO = new IngredientesDAOImpl();
 
-    // REGISTRAR INGREDIENTE
     public static void registrarIngrediente(
             String nombre, String unidad, double stock) {
 
@@ -44,7 +43,6 @@ public class IngredientesOperaciones {
         }
     }
 
-    // LISTAR INGREDIENTES
     public static void listarIngredientes() {
 
         List<Ingrediente> ingredientes = ingredienteDAO.listar();
@@ -64,7 +62,6 @@ public class IngredientesOperaciones {
         }
     }
 
-    // BUSCAR INGREDIENTE
     public static void buscarIngrediente(int id) {
 
         if (id <= 0) {
@@ -81,7 +78,7 @@ public class IngredientesOperaciones {
         }
     }
 
-    // ACTUALIZAR INGREDIENTE
+
     public static void actualizarIngrediente(
             int id, String nombre, String unidad, double stock) {
 
@@ -120,7 +117,6 @@ public class IngredientesOperaciones {
         }
     }
 
-    // ELIMINAR INGREDIENTE
     public static void eliminarIngrediente(int id) {
 
         if (id <= 0) {
@@ -139,7 +135,6 @@ public class IngredientesOperaciones {
         }
     }
 
-    // VERIFICAR EXISTENCIA
     public static Boolean existeIngrediente(int id) {
 
         if (id <= 0) {

@@ -5,6 +5,7 @@ public class Cliente extends Persona {
     private String direccion;
     private String referencia;
     private String distrito;
+    private String correo;
 
     // Constructor original (se mantiene para no romper PedidoDAOImpl ni MainView)
     public Cliente(int id, String nombres, String telefono, String apellidos){
@@ -20,9 +21,17 @@ public class Cliente extends Persona {
         this.distrito = distrito;
     }
 
+    // Constructor completo con correo
+    public Cliente(int id, String nombres, String telefono, String apellidos,
+                   String direccion, String referencia, String distrito, String correo) {
+        this(id, nombres, telefono, apellidos, direccion, referencia, distrito);
+        this.correo = correo;
+    }
+
     @Override
     public void mostrarInformacion() {
         super.mostrarInformacion();
+        System.out.println("Correo: " + correo);
         System.out.println("Direccion: " + direccion);
         System.out.println("Referencia: " + referencia);
         System.out.println("Distrito: " + distrito);
@@ -50,5 +59,13 @@ public class Cliente extends Persona {
 
     public void setDistrito(String distrito) {
         this.distrito = distrito;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
     }
 }

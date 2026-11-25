@@ -27,36 +27,37 @@ public class CompraDAOImpl implements CompraDAO {
         double total = cantidad * precioUnitario;
 
         String sqlVerificar = "SELECT id_ingrediente FROM ingredientes WHERE id_ingrediente = ? FOR UPDATE";
-        //«Buscar el ingrediente por su ID y bloquear su registro mientras se realiza la transacción».
+        //Buscar el ingrediente por su ID y bloquear su registro mientras se realiza la transacción
 
-        String sqlCompra = idProveedor == null
-                ? "INSERT INTO compras (total) VALUES (?)"
-                : "INSERT INTO compras (total, id_proveedor) VALUES (?, ?)";
-        //«Insertar una nueva compra en la tabla compras, guardando su total».
+        String sqlCompra = idProveedor == null ? "INSERT INTO compras (total) VALUES (?)" : "INSERT INTO compras (total, id_proveedor) VALUES (?, ?)";
+        //Insertar una nueva compra en la tabla compras, guardando su total
 
         String sqlDetalle = "INSERT INTO detalle_compra (id_compra, id_ingrediente, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
-        //«Registrar en detalle_compra qué ingrediente se compró, en qué cantidad, a qué precio y a qué compra pertenece».
+        //Registrar en detalle_compra qué ingrediente se compró, en qué cantidad, a qué precio y a qué compra pertenece
 
         String sqlStock = "UPDATE ingredientes SET stock = stock + ? WHERE id_ingrediente = ?";
-        //«Actualizar el stock del ingrediente, sumándole la cantidad que acabamos de comprar».
+        //Actualizar el stock del ingrediente, sumándole la cantidad que acabamos de comprar
 
         try (Connection connection = ConexionBD.getConnection()) {
 
             connection.setAutoCommit(false);
 
             try {
+
                 // 1. Verificar y bloquear el ingrediente.
 
-                PreparedStatement verificar = connection.prepareStatement(sqlVerificar);
-                verificar.setInt(1, idIngrediente);
+                try (PreparedStatement verificar = connection.prepareStatement(sqlVerificar)) {
 
-                try (ResultSet resultado = verificar.executeQuery()) {
+                    verificar.setInt(1, idIngrediente);
 
-                    if (!resultado.next()) {
+                    try (ResultSet resultado = verificar.executeQuery()) {
 
-                        connection.rollback();
-                        System.out.println("El ingrediente no existe.");
-                        return -1;
+                        if (!resultado.next()) {
+
+                            connection.rollback();
+                            System.out.println("El ingrediente no existe.");
+                            return -1;
+                        }
                     }
                 }
 
@@ -66,16 +67,19 @@ public class CompraDAOImpl implements CompraDAO {
                 try (PreparedStatement registrar = connection.prepareStatement(sqlCompra, Statement.RETURN_GENERATED_KEYS)) {
 
                     registrar.setDouble(1, total);
+
                     if (idProveedor != null) {
                         registrar.setInt(2, idProveedor);
                     }
 
                     if (registrar.executeUpdate() == 0) {
+
                         connection.rollback();
                         return -1;
                     }
 
                     try (ResultSet claves = registrar.getGeneratedKeys()) {
+
                         if (!claves.next()) {
                             connection.rollback();
                             return -1;
@@ -100,6 +104,7 @@ public class CompraDAOImpl implements CompraDAO {
                 }
 
                 // 4. Aumentar el stock del ingrediente.
+
                 try (PreparedStatement actualizar = connection.prepareStatement(sqlStock)) {
 
                     actualizar.setDouble(1, cantidad);
@@ -112,6 +117,7 @@ public class CompraDAOImpl implements CompraDAO {
                 }
 
                 // 5. Confirmar la transacción.
+
                 connection.commit();
 
                 return idCompra;

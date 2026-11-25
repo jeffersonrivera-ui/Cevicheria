@@ -15,14 +15,10 @@ import java.util.List;
 
 public class ClienteDAOImpl implements ClienteDAO {
 
-    // ==========================================
-    // INSERTAR CLIENTE
-    // ==========================================
-
     @Override
     public int insertar(Cliente cliente) {
 
-        String sql = "INSERT INTO clientes (nombres, apellidos, telefono, direccion, referencia, distrito) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO clientes (nombres, apellidos, telefono, correo, direccion, referencia, distrito) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -30,9 +26,10 @@ public class ClienteDAOImpl implements ClienteDAO {
             ps.setString(1, cliente.getNombres());
             ps.setString(2, cliente.getApellidos());
             ps.setString(3, cliente.getTelefono());
-            ps.setString(4, vacioANulo(cliente.getDireccion()));
-            ps.setString(5, vacioANulo(cliente.getReferencia()));
-            ps.setString(6, vacioANulo(cliente.getDistrito()));
+            ps.setString(4, vacioANulo(cliente.getCorreo()));
+            ps.setString(5, vacioANulo(cliente.getDireccion()));
+            ps.setString(6, vacioANulo(cliente.getReferencia()));
+            ps.setString(7, vacioANulo(cliente.getDistrito()));
 
             int filas = ps.executeUpdate();
 
@@ -53,10 +50,6 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         return -1;
     }
-
-    // ==========================================
-    // LISTAR CLIENTES
-    // ==========================================
 
     @Override
     public List<Cliente> listar() {
@@ -80,9 +73,6 @@ public class ClienteDAOImpl implements ClienteDAO {
         return clientes;
     }
 
-    // ==========================================
-    // BUSCAR CLIENTE POR ID
-    // ==========================================
 
     @Override
     public Cliente buscarPorId(Integer id) {
@@ -108,14 +98,11 @@ public class ClienteDAOImpl implements ClienteDAO {
         return null;
     }
 
-    // ==========================================
-    // ACTUALIZAR CLIENTE
-    // ==========================================
 
     @Override
     public boolean actualizar(Cliente cliente) {
 
-        String sql = "UPDATE clientes SET nombres = ?, apellidos = ?, telefono = ?, direccion = ?, referencia = ?, distrito = ? WHERE id_cliente = ?";
+        String sql = "UPDATE clientes SET nombres = ?, apellidos = ?, telefono = ?, correo = ?, direccion = ?, referencia = ?, distrito = ? WHERE id_cliente = ?";
 
         try (Connection connection = ConexionBD.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -123,10 +110,11 @@ public class ClienteDAOImpl implements ClienteDAO {
             ps.setString(1, cliente.getNombres());
             ps.setString(2, cliente.getApellidos());
             ps.setString(3, cliente.getTelefono());
-            ps.setString(4, vacioANulo(cliente.getDireccion()));
-            ps.setString(5, vacioANulo(cliente.getReferencia()));
-            ps.setString(6, vacioANulo(cliente.getDistrito()));
-            ps.setInt(7, cliente.getId());
+            ps.setString(4, vacioANulo(cliente.getCorreo()));
+            ps.setString(5, vacioANulo(cliente.getDireccion()));
+            ps.setString(6, vacioANulo(cliente.getReferencia()));
+            ps.setString(7, vacioANulo(cliente.getDistrito()));
+            ps.setInt(8, cliente.getId());
 
             return ps.executeUpdate() > 0;
 
@@ -138,9 +126,6 @@ public class ClienteDAOImpl implements ClienteDAO {
         return false;
     }
 
-    // ==========================================
-    // ELIMINAR CLIENTE
-    // ==========================================
 
     @Override
     public boolean eliminar(Integer id) {
@@ -168,10 +153,6 @@ public class ClienteDAOImpl implements ClienteDAO {
         return false;
     }
 
-    // ==========================================
-    // VERIFICAR SI EXISTE CLIENTE
-    // ==========================================
-
     @Override
     public boolean existe(int id) {
 
@@ -195,10 +176,6 @@ public class ClienteDAOImpl implements ClienteDAO {
         return false;
     }
 
-    // ==========================================
-    // AUXILIARES
-    // ==========================================
-
     private Cliente mapear(ResultSet rs) throws SQLException {
         return new Cliente(
                 rs.getInt("id_cliente"),
@@ -207,7 +184,8 @@ public class ClienteDAOImpl implements ClienteDAO {
                 rs.getString("apellidos"),
                 rs.getString("direccion"),
                 rs.getString("referencia"),
-                rs.getString("distrito")
+                rs.getString("distrito"),
+                rs.getString("correo")
         );
     }
 

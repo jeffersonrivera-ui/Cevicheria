@@ -10,7 +10,6 @@ public class DetalleIngredienteExcluidoOperaciones {
 
     private static final DetalleIngredienteExcluidoDAO exclusionDAO = new DetalleIngredienteExcluidoDAOImpl();
 
-    // REGISTRAR EXCLUSION
     public static void registrarExclusion(int idDetalle, int idIngrediente) {
 
         if (idDetalle <= 0 || idIngrediente <= 0) {
@@ -21,7 +20,6 @@ public class DetalleIngredienteExcluidoOperaciones {
         exclusionDAO.insertar(idDetalle, idIngrediente);
     }
 
-    // LISTAR EXCLUSIONES
     public static void listarExclusiones(int idDetalle) {
 
         if (idDetalle <= 0) {
@@ -47,7 +45,6 @@ public class DetalleIngredienteExcluidoOperaciones {
         }
     }
 
-    // ELIMINAR EXCLUSION
     public static void eliminarExclusion(int idDetalle, int idIngrediente) {
 
         if (idDetalle <= 0 || idIngrediente <= 0) {

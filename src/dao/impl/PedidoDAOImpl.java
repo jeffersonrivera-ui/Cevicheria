@@ -6,6 +6,7 @@ import modelo.Pedido;
 import modelo.Cliente;
 import modelo.Mesero;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -364,19 +365,15 @@ public class  PedidoDAOImpl implements PedidoDAO {
             }
         }
 
-        String sqlIngredientes = "SELECT pi.id_ingrediente, SUM(dp.cantidad * pi.cantidad) AS cantidad_requerida, " +
-                        "i.stock FROM detalle_pedido dp  JOIN plato_ingrediente pi " +
-                        "ON dp.id_plato = pi.id_plato INNER JOIN ingredientes i " +
-                        "ON pi.id_ingrediente = i.id_ingrediente WHERE dp.id_pedido = ? " +
-                        "AND NOT EXISTS (SELECT 1 FROM detalle_ingrediente_excluido ex " +
-                        "WHERE ex.id_detalle = dp.id_detalle AND ex.id_ingrediente = pi.id_ingrediente) " +
-                        "GROUP BY pi.id_ingrediente, i.stock";
+        // La consulta de ingredientes (JOIN + NOT EXISTS + GROUP BY) esta en el
+        // procedimiento sp_ingredientes_requeridos
+        String sqlIngredientes = "{CALL sp_ingredientes_requeridos(?)}";
 
-        try (PreparedStatement ps = con.prepareStatement(sqlIngredientes)) {
+        try (CallableStatement cs = con.prepareCall(sqlIngredientes)) {
 
-            ps.setInt(1, idPedido);
+            cs.setInt(1, idPedido);
 
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = cs.executeQuery()) {
 
                 while (rs.next()) {
 
@@ -436,7 +433,7 @@ public class  PedidoDAOImpl implements PedidoDAO {
             boolean inventarioDescontado;
             String estado;
 
-            // 1. Buscar y bloquear el pedido
+            // Buscar y bloquear el pedido
             String sqlBuscar = "SELECT estado, inventario_descontado FROM pedidos WHERE id_pedido = ? FOR UPDATE";
 
             try (PreparedStatement ps = con.prepareStatement(sqlBuscar)) {
@@ -457,14 +454,14 @@ public class  PedidoDAOImpl implements PedidoDAO {
                 }
             }
 
-            // 2. No permitir eliminar pedidos entregados
+            // No permitir eliminar pedidos entregados
             if ("ENTREGADO".equalsIgnoreCase(estado)) {
                 con.rollback();
                 System.out.println("No se puede eliminar un pedido entregado.");
                 return false;
             }
 
-            // 3. Verificar pagos
+            // Verificar pagos
             String sqlPagos = "SELECT COUNT(*) FROM pagos WHERE id_pedido = ?";
 
             try (PreparedStatement ps = con.prepareStatement(sqlPagos)) {
@@ -482,7 +479,7 @@ public class  PedidoDAOImpl implements PedidoDAO {
                 }
             }
 
-            // 4. Verificar ventas
+            // Verificar ventas
             String sqlVentas = "SELECT COUNT(*) FROM ventas WHERE id_pedido = ?";
 
             try (PreparedStatement ps = con.prepareStatement(sqlVentas)) {
@@ -500,21 +497,18 @@ public class  PedidoDAOImpl implements PedidoDAO {
                 }
             }
 
-            // 5. Devolver ingredientes al inventario si fueron descontados
+            // Devolver ingredientes al inventario si fueron descontados
             if (inventarioDescontado) {
 
-                String sqlIngredientes = "SELECT pi.id_ingrediente, SUM(dp.cantidad * pi.cantidad) AS cantidad " +
-                                "FROM detalle_pedido dp INNER JOIN plato_ingrediente pi " +
-                                "ON dp.id_plato = pi.id_plato WHERE dp.id_pedido = ? " +
-                                "AND NOT EXISTS (SELECT 1 FROM detalle_ingrediente_excluido ex " +
-                                "WHERE ex.id_detalle = dp.id_detalle AND ex.id_ingrediente = pi.id_ingrediente) " +
-                                "GROUP BY pi.id_ingrediente";
+                //////////////// procedimiento///////////////
 
-                try (PreparedStatement ps = con.prepareStatement(sqlIngredientes)) {
+                String sqlIngredientes = "{CALL sp_ingredientes_devolver(?)}";
 
-                    ps.setInt(1, id);
+                try (CallableStatement cs = con.prepareCall(sqlIngredientes)) {
 
-                    try (ResultSet rs = ps.executeQuery()) {
+                    cs.setInt(1, id);
+
+                    try (ResultSet rs = cs.executeQuery()) {
 
                         while (rs.next()) {
 
@@ -610,6 +604,4 @@ public class  PedidoDAOImpl implements PedidoDAO {
             return false;
         }
     }
-
-
 }

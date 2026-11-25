@@ -85,11 +85,74 @@ public class PanelTomarPedido extends ModuloBase {
     private final JTextField txtNombres = Estilo.campo();
     private final JTextField txtApellidos = Estilo.campo();
     private final JTextField txtTelefono = Estilo.campo();
+    private final JTextField txtCorreo = Estilo.campo();
+    private final JTextField txtDireccion = Estilo.campo();
+    private final JTextField txtReferencia = Estilo.campo();
+    private final JTextField txtDistrito = Estilo.campo();
     private boolean llenandoCliente = false;
     private final JLabel lblPlatos = Estilo.etiqueta("0", Estilo.SUBTITULO, Estilo.PRIMARIO_OSCURO);
     private final JLabel lblTotal = Estilo.etiqueta("S/ 0.00", Estilo.SUBTITULO, new Color(0x15803D));
     private final JLabel lblDisponibles;
     private final JLabel lblPedidosHoy;
+
+    // Boton "Quitar" dibujado a mano (no depende de simbolos de la fuente): pildora roja suave con icono de tacho.
+    private static final class BotonQuitar extends JButton {
+        private boolean encima;
+
+        BotonQuitar() {
+            super("Quitar");
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setOpaque(false);
+            setFont(Estilo.PEQUENA_NEGRITA);
+            setForeground(new Color(0xB91C1C));
+            setHorizontalAlignment(SwingConstants.RIGHT);
+            setBorder(new EmptyBorder(5, 30, 5, 12));
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setToolTipText("Quitar del pedido");
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    encima = true;
+                    repaint();
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    encima = false;
+                    repaint();
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int w = getWidth();
+            int h = getHeight();
+            g2.setColor(encima ? new Color(0xFECACA) : new Color(0xFEE2E2));
+            g2.fillRoundRect(0, 0, w - 1, h - 1, h, h);
+            g2.setColor(new Color(0xFCA5A5));
+            g2.drawRoundRect(0, 0, w - 1, h - 1, h, h);
+
+            // Icono de tacho
+            g2.setColor(new Color(0xB91C1C));
+            g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            int x = 12;
+            int y = (h - 13) / 2;
+            g2.drawLine(x, y + 3, x + 10, y + 3);          // tapa
+            g2.drawLine(x + 3, y + 3, x + 3, y + 1);       // asa
+            g2.drawLine(x + 3, y + 1, x + 7, y + 1);
+            g2.drawLine(x + 7, y + 1, x + 7, y + 3);
+            g2.drawRoundRect(x + 1, y + 5, 8, 8, 2, 2);    // cuerpo
+            g2.drawLine(x + 4, y + 7, x + 4, y + 11);      // rayas
+            g2.drawLine(x + 6, y + 7, x + 6, y + 11);
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
 
     // ---------- Una fila de plato ----------
     private final class FilaPlato extends JPanel {
@@ -98,7 +161,7 @@ public class PanelTomarPedido extends ModuloBase {
         final JLabel lblSubtotal = Estilo.etiqueta("S/ 0.00", Estilo.NEGRITA, new Color(0x15803D));
         final JLabel lblSin = Estilo.etiqueta("Sin cambios en los ingredientes", Estilo.PEQUENA, Estilo.TEXTO_SUAVE);
         final JLabel lblTitulo = Estilo.etiqueta("Plato", Estilo.NEGRITA, Estilo.PRIMARIO_OSCURO);
-        final JButton btnQuitar = new JButton("✖  Quitar");
+        final JButton btnQuitar = new BotonQuitar();
         final Set<Integer> excluidos = new LinkedHashSet<>();
         final List<String> nombresExcluidos = new ArrayList<>();
         String otros = "";
@@ -231,7 +294,7 @@ public class PanelTomarPedido extends ModuloBase {
         final JSpinner spn = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
         final JLabel lblSubtotal = Estilo.etiqueta("S/ 0.00", Estilo.NEGRITA, new Color(0x15803D));
         final JLabel lblTitulo = Estilo.etiqueta("Bebida", Estilo.NEGRITA, Estilo.PRIMARIO_OSCURO);
-        final JButton btnQuitar = new JButton("\u2716  Quitar");
+        final JButton btnQuitar = new BotonQuitar();
 
         FilaBebida() {
             super(new GridBagLayout());
@@ -393,7 +456,11 @@ public class PanelTomarPedido extends ModuloBase {
         fCliente.agregar("Cliente:", false, cmbCliente);
         fCliente.agregar("Nombres:", true, txtNombres);
         fCliente.agregar("Apellidos:", true, txtApellidos);
-        fCliente.agregar("Teléfono:", true, txtTelefono);
+        fCliente.agregar("Teléfono:", false, txtTelefono);
+        fCliente.agregar("Correo:", false, txtCorreo);
+        fCliente.agregar("Dirección:", false, txtDireccion);
+        fCliente.agregar("Referencia:", false, txtReferencia);
+        fCliente.agregar("Distrito:", false, txtDistrito);
 
         JButton btnRegistrar = Estilo.boton("Registrar pedido", Estilo.EXITO);
         JButton btnLimpiar = Estilo.boton("Limpiar", Estilo.GRIS);
@@ -412,7 +479,7 @@ public class PanelTomarPedido extends ModuloBase {
         anadir(col, tituloDePanel("\u263A", "Registro de cliente"));
         anadir(col, fCliente);
         anadir(col, Estilo.aviso("Elija un cliente existente o deje \"Cliente nuevo\" y complete sus datos; "
-                + "se registrará solo.", "info"));
+                + "se registrará solo. La dirección, referencia y distrito se usan luego en el delivery.", "info"));
         anadir(col, resumen);
         anadir(col, btnRegistrar);
         anadir(col, btnLimpiar);
@@ -456,6 +523,10 @@ public class PanelTomarPedido extends ModuloBase {
 
     private static String escapar(String s) {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private static String nz(String s) {
+        return s == null ? "" : s;
     }
 
     private static String nombreCompleto(Cliente c) {
@@ -781,7 +852,12 @@ public class PanelTomarPedido extends ModuloBase {
         boolean existente = elegido != null;
         txtNombres.setText(existente ? elegido.getNombres() : "");
         txtApellidos.setText(existente ? elegido.getApellidos() : "");
-        txtTelefono.setText(existente ? elegido.getTelefono() : "");
+        txtTelefono.setText(existente && elegido.getTelefono() != null ? elegido.getTelefono() : "");
+        // Los datos de contacto y entrega se pueden completar aunque el cliente ya exista.
+        txtCorreo.setText(existente && elegido.getCorreo() != null ? elegido.getCorreo() : "");
+        txtDireccion.setText(existente && elegido.getDireccion() != null ? elegido.getDireccion() : "");
+        txtReferencia.setText(existente && elegido.getReferencia() != null ? elegido.getReferencia() : "");
+        txtDistrito.setText(existente && elegido.getDistrito() != null ? elegido.getDistrito() : "");
         for (JTextField t : new JTextField[]{txtNombres, txtApellidos, txtTelefono}) {
             t.setEditable(!existente);
             t.setBackground(existente ? new Color(0xEEF2F8) : Color.WHITE);
@@ -798,12 +874,28 @@ public class PanelTomarPedido extends ModuloBase {
         String nombres = txtNombres.getText().trim();
         String apellidos = txtApellidos.getText().trim();
         String telefono = txtTelefono.getText().trim();
+        String correo = txtCorreo.getText().trim();
+        String direccion = txtDireccion.getText().trim();
+        String referencia = txtReferencia.getText().trim();
+        String distrito = txtDistrito.getText().trim();
+        if (!correo.isEmpty() && (correo.length() > 100 || !correo.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+"))) {
+            advertencia("Ingrese un correo válido (ejemplo: nombre@correo.com) o déjelo vacío.");
+            return;
+        }
+        if (direccion.length() > 200 || referencia.length() > 200) {
+            advertencia("La dirección y la referencia admiten hasta 200 caracteres.");
+            return;
+        }
+        if (distrito.length() > 80) {
+            advertencia("El distrito admite hasta 80 caracteres.");
+            return;
+        }
         if (idCliente <= 0) {
-            if (nombres.isEmpty() || apellidos.isEmpty() || telefono.isEmpty()) {
-                advertencia("Complete nombres, apellidos y teléfono del cliente.");
+            if (nombres.isEmpty() || apellidos.isEmpty()) {
+                advertencia("Complete nombres y apellidos del cliente.");
                 return;
             }
-            if (!telefono.matches("[0-9+ ]{6,15}")) {
+            if (!telefono.isEmpty() && !telefono.matches("[0-9+ ]{6,15}")) {
                 advertencia("El teléfono solo puede tener números (de 6 a 15 dígitos).");
                 return;
             }
@@ -832,10 +924,24 @@ public class PanelTomarPedido extends ModuloBase {
 
         // 1. Cliente (existente o nuevo).
         if (idCliente <= 0) {
-            idCliente = clienteDAO.insertar(new Cliente(0, nombres, telefono, apellidos));
+            idCliente = clienteDAO.insertar(new Cliente(0, nombres, telefono, apellidos,
+                    direccion, referencia, distrito, correo));
             if (idCliente <= 0) {
                 error("No se pudo registrar al cliente.");
                 return;
+            }
+        } else {
+            // Cliente existente: si el mesero completó o cambió sus datos de contacto/entrega, se guardan.
+            Cliente actual = clienteDAO.buscarPorId(idCliente);
+            if (actual != null && (!nz(actual.getCorreo()).equals(correo)
+                    || !nz(actual.getDireccion()).equals(direccion)
+                    || !nz(actual.getReferencia()).equals(referencia)
+                    || !nz(actual.getDistrito()).equals(distrito))) {
+                actual.setCorreo(correo);
+                actual.setDireccion(direccion);
+                actual.setReferencia(referencia);
+                actual.setDistrito(distrito);
+                clienteDAO.actualizar(actual);
             }
         }
 

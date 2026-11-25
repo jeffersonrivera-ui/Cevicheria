@@ -10,10 +10,6 @@ public class BebidasOperaciones {
 
     private static final BebidaDAO bebidaDAO = new BebidaDAOImpl();
 
-    // REGISTRAR BEBIDA
-    public static void registrarBebida(String nombre, double precio) {
-        registrarBebida(nombre, precio, 0);
-    }
 
     public static void registrarBebida(String nombre, double precio, int stock) {
 
@@ -47,7 +43,6 @@ public class BebidasOperaciones {
         }
     }
 
-    // LISTAR BEBIDAS
     public static void listarBebidas() {
 
         List<Bebida> bebidas = bebidaDAO.listar();
@@ -67,7 +62,6 @@ public class BebidasOperaciones {
         }
     }
 
-    // BUSCAR BEBIDA
     public static void buscarBebida(int id) {
 
         if (id <= 0) {
@@ -89,7 +83,7 @@ public class BebidasOperaciones {
             System.out.println("Cantidad disponible: " + bebida.getStock());
     }
 
-    // BUSCAR BEBIDA Y DEVOLVER OBJETO
+    // BUSCAR BEBIDA Y DEVOLVER OBJETO/
     public static Bebida buscarBebidaObjeto(int idBebida) {
 
         if (idBebida <= 0) {
@@ -99,11 +93,6 @@ public class BebidasOperaciones {
         return bebidaDAO.buscarPorId(idBebida);
     }
 
-    // ACTUALIZAR BEBIDA
-    public static void actualizarBebida(int id, String nombre, double precio) {
-        Bebida actual = bebidaDAO.buscarPorId(id);
-        actualizarBebida(id, nombre, precio, actual == null ? 0 : actual.getStock());
-    }
 
     public static void actualizarBebida(int id, String nombre, double precio, int stock) {
 
@@ -138,7 +127,7 @@ public class BebidasOperaciones {
         }
     }
 
-    // ELIMINAR BEBIDA
+
     public static void eliminarBebida(int id) {
 
         if (id <= 0) {

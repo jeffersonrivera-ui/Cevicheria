@@ -13,7 +13,6 @@ public class DetallePedidoOperacione {
 
     private static final DetallePedidoDAO detalleDAO = new DetallePedidoDAOImpl();
 
-    // REGISTRAR DETALLE
     public static int registrarDetalle(int idPedido, int idPlato, int cantidad, String observacion) {
 
         if (cantidad <= 0) {
@@ -21,7 +20,6 @@ public class DetallePedidoOperacione {
             return -1;
         }
 
-        // Crear los objetos relacionados
         Pedido pedido = PedidosOperaciones.buscarPedidoObjeto(idPedido);
         Plato plato = PlatosOperaciones.buscarPlatoObjeto(idPlato);
 
@@ -30,13 +28,12 @@ public class DetallePedidoOperacione {
             return -1;
         }
 
-        // Crear el objeto DetallePedido
         DetallePedido detalle = new DetallePedido(0, pedido, plato, cantidad, plato.getPrecio(), observacion);
 
         return detalleDAO.insertar(detalle);
     }
 
-    // LISTAR DETALLES
+
     public static void listarDetalles(int idPedido) {
 
         List<DetallePedido> detalles = detalleDAO.listarPorPedido(idPedido);
@@ -64,7 +61,6 @@ public class DetallePedidoOperacione {
         }
     }
 
-    // BUSCAR DETALLE
     public static void buscarDetalle(int idDetalle) {
 
         DetallePedido detalle = detalleDAO.buscarPorId(idDetalle);
@@ -88,7 +84,6 @@ public class DetallePedidoOperacione {
         System.out.println("Subtotal: S/ " + detalle.calcularSubtotal());
     }
 
-    // ACTUALIZAR DETALLE
     public static void actualizarDetalle(int idDetalle, int cantidad, String observacion) {
 
         if (cantidad <= 0) {
@@ -97,6 +92,7 @@ public class DetallePedidoOperacione {
         }
 
         // Buscar el detalle existente
+
         DetallePedido detalle = detalleDAO.buscarPorId(idDetalle);
 
         if (detalle == null) {
@@ -109,13 +105,13 @@ public class DetallePedidoOperacione {
         detalleDAO.actualizar(detalle);
     }
 
-    // ELIMINAR DETALLE
+
     public static void eliminarDetalle(int idDetalle) {
 
         detalleDAO.eliminar(idDetalle);
     }
 
-    // CALCULAR TOTAL DEL PEDIDO
+
     public static double calcularTotalPedido(int idPedido) {
 
         double total = detalleDAO.calcularTotal(idPedido);

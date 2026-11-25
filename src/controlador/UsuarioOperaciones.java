@@ -19,12 +19,9 @@ public class UsuarioOperaciones {
     private static final int ITERACIONES = 65536;
     private static final int LONGITUD_HASH = 256;
 
-    public int registrarUsuario(int idEmpleado,
-                                String nombreUsuario,
-                                String contrasena) {
+    public int registrarUsuario(int idEmpleado, String nombreUsuario, String contrasena) {
 
-        if (nombreUsuario == null || nombreUsuario.trim().isEmpty()
-                || contrasena == null || contrasena.isEmpty()) {
+        if (nombreUsuario == null || nombreUsuario.trim().isEmpty() || contrasena == null || contrasena.isEmpty()) {
             System.out.println("Complete todos los campos.");
             return 0;
         }
@@ -45,6 +42,7 @@ public class UsuarioOperaciones {
     }
 
     // Iniciar sesión
+
     public Usuario autenticar(String nombreUsuario, String contrasena) {
 
         if (nombreUsuario == null || contrasena == null) {
@@ -86,6 +84,7 @@ public class UsuarioOperaciones {
     }
 
     public boolean cambiarContrasena(int idUsuario, String nuevaContrasena) {
+
         if (nuevaContrasena == null || nuevaContrasena.isEmpty()) {
             return false;
         }
@@ -126,7 +125,8 @@ public class UsuarioOperaciones {
         }
     }
 
-    // Verificar contraseña
+
+
     private boolean verificarContrasena(String contrasena, String hashGuardado) {
 
         try {

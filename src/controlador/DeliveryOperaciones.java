@@ -18,6 +18,7 @@ public class DeliveryOperaciones {
     private static final PedidoDAO pedidoDAO = new PedidoDAOImpl();
     private static final ClienteDAO clienteDAO = new ClienteDAOImpl();
 
+
     // Resultado de una operacion: la vista lo usa para mostrar el mensaje exacto.
     public static class Resultado {
         public final boolean ok;
@@ -33,21 +34,18 @@ public class DeliveryOperaciones {
 
     private static Resultado fallo(String mensaje) {
         System.out.println(mensaje);
+
         return new Resultado(false, mensaje, -1);
     }
 
     private static Resultado exito(String mensaje, int id) {
         System.out.println(mensaje);
+
         return new Resultado(true, mensaje, id);
     }
 
-    // ==========================================
-    // REGISTRAR DELIVERY
-    // ==========================================
 
-    public static Resultado registrarDelivery(int idPedido, String plataforma, String codigoExterno,
-                                              String direccionEntrega, String referenciaEntrega,
-                                              double costoDelivery) {
+    public static Resultado registrarDelivery(int idPedido, String plataforma, String codigoExterno, String direccionEntrega, String referenciaEntrega, double costoDelivery) {
 
         Pedido pedido = pedidoDAO.buscarPorId(idPedido);
 
@@ -75,21 +73,18 @@ public class DeliveryOperaciones {
             return fallo("El costo del delivery no puede ser negativo.");
         }
 
-        Delivery d = new Delivery(0, idPedido, null, canonica(plataforma),
-                vacioANulo(codigoExterno), direccionEntrega.trim(), vacioANulo(referenciaEntrega),
-                costoDelivery, Delivery.SOLICITADO, null);
+        Delivery d = new Delivery(0, idPedido, null, canonica(plataforma), vacioANulo(codigoExterno), direccionEntrega.trim(),
+                vacioANulo(referenciaEntrega), costoDelivery, Delivery.SOLICITADO, null);
 
         int id = deliveryDAO.registrar(d, "Delivery solicitado por " + canonica(plataforma));
 
         if (id > 0) {
+
             return exito("Delivery registrado correctamente. Código: " + String.format("DEL-%03d", id), id);
         }
         return fallo("No se pudo registrar el delivery.");
     }
 
-    // ==========================================
-    // CONSULTAS
-    // ==========================================
 
     public static List<Delivery> listarDeliveries() {
         return deliveryDAO.listar();
@@ -118,9 +113,6 @@ public class DeliveryOperaciones {
         return deliveryDAO.listarSeguimiento(idDelivery);
     }
 
-    // ==========================================
-    // ACTUALIZAR ESTADO
-    // ==========================================
 
     public static Resultado actualizarEstado(int idDelivery, String nuevoEstado, String descripcion) {
 
@@ -141,7 +133,9 @@ public class DeliveryOperaciones {
         return fallo("No se pudo actualizar el estado del delivery.");
     }
 
+
     // Devuelve null si el cambio es valido, o el motivo por el que no lo es.
+
     public static String validarTransicion(String actual, String nuevo) {
 
         if (nuevo == null || indice(nuevo) < 0 && !Delivery.CANCELADO.equals(nuevo)) {
@@ -173,16 +167,15 @@ public class DeliveryOperaciones {
     }
 
     // Estados a los que se puede pasar desde el actual (el siguiente del flujo y CANCELADO).
+
     public static String[] estadosSiguientes(String actual) {
+
         if (Delivery.ENTREGADO.equals(actual) || Delivery.CANCELADO.equals(actual) || indice(actual) < 0) {
             return new String[0];
         }
         return new String[]{Delivery.FLUJO[indice(actual) + 1], Delivery.CANCELADO};
     }
 
-    // ==========================================
-    // AUXILIARES
-    // ==========================================
 
     private static int indice(String estado) {
         for (int i = 0; i < Delivery.FLUJO.length; i++) {
@@ -211,6 +204,7 @@ public class DeliveryOperaciones {
     }
 
     // Datos del cliente de un pedido para precargar la direccion de entrega.
+
     public static modelo.Cliente clienteDelPedido(Pedido pedido) {
         if (pedido == null || pedido.getCliente() == null) {
             return null;

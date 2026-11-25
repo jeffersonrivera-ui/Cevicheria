@@ -10,16 +10,12 @@ public class ComprasOperaciones {
 
     private static final CompraDAO compraDAO = new CompraDAOImpl();
 
-    // REGISTRAR COMPRA
-    public static int registrarCompra(int idIngrediente, double cantidad, double precioUnitario) {
-        return registrarCompra(idIngrediente, cantidad, precioUnitario, null);
-    }
-
     // Con idProveedor (opcional): el proveedor debe existir y estar ACTIVO.
-    public static int registrarCompra(int idIngrediente, double cantidad, double precioUnitario,
-                                      Integer idProveedor) {
+
+    public static int registrarCompra(int idIngrediente, double cantidad, double precioUnitario, Integer idProveedor) {
 
         if (idProveedor != null) {
+
             modelo.Proveedor proveedor = ProveedorOperaciones.buscarProveedor(idProveedor);
             if (proveedor == null) {
                 System.out.println("El proveedor no existe.");
@@ -32,6 +28,7 @@ public class ComprasOperaciones {
         }
 
         // Validaciones
+
         if (idIngrediente <= 0) {
             System.out.println("El ID del ingrediente no es valido.");
             return -1;
@@ -77,7 +74,6 @@ public class ComprasOperaciones {
         return idCompra;
     }
 
-    // LISTAR COMPRAS
     public static void listarCompras() {
 
         List<Map<String, Object>> compras = compraDAO.listarCompras();
@@ -101,7 +97,7 @@ public class ComprasOperaciones {
         }
     }
 
-    // BUSCAR COMPRA
+
     public static void buscarCompra(int idCompra) {
 
         if (idCompra <= 0) {

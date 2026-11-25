@@ -37,7 +37,7 @@ public class PagoDAOImpl implements PagoDAO {
             connection.setAutoCommit(false);
 
             try {
-                // 1. Verificar y bloquear el pedido.
+                // Verificar y bloquear el pedido
                 String estadoPedido;
 
                 try (PreparedStatement ps =
@@ -63,7 +63,7 @@ public class PagoDAOImpl implements PagoDAO {
                     return null;
                 }
 
-                // 2. Obtener el total del pedido.
+                // Obtener el total del pedido.
                 double totalPedido;
 
                 try (PreparedStatement ps =
@@ -84,7 +84,7 @@ public class PagoDAOImpl implements PagoDAO {
                     return null;
                 }
 
-                // 3. Obtener el total pagado anteriormente.
+                // Obtener el total pagado anteriormente/
                 double totalPagado;
 
                 try (PreparedStatement ps = connection.prepareStatement(sqlPagado)) {
@@ -97,7 +97,7 @@ public class PagoDAOImpl implements PagoDAO {
                     }
                 }
 
-                // 4. Calcular el saldo pendiente.
+                // Calcular el saldo pendiente/
                 double saldoPendiente = totalPedido - totalPagado;
 
                 if (saldoPendiente <= 0.01) {
@@ -113,7 +113,7 @@ public class PagoDAOImpl implements PagoDAO {
                     return null;
                 }
 
-                // 5. Registrar el pago: reutilizar el registro del pedido o crear el primero.
+                // Registrar el pago: reutilizar el registro del pedido o crear el primero.
                 boolean completo = saldoPendiente - monto <= 0.01;
                 String nuevoEstado = completo ? "Pagado" : "Adelanto";
                 int idPago = 0;
@@ -163,7 +163,8 @@ public class PagoDAOImpl implements PagoDAO {
                     }
                 }
 
-                // 6. Confirmar la transacción.
+                // 6. Confirmar la transacción
+
                 connection.commit();
 
                 totalPagado += monto;

@@ -22,8 +22,7 @@ public class DeliveryDAOImpl implements DeliveryDAO {
     @Override
     public int registrar(Delivery d, String descripcionInicial) {
 
-        String sqlInsert = "INSERT INTO deliveries (id_pedido, codigo_delivery, plataforma, codigo_externo, "
-                + "direccion_entrega, referencia_entrega, costo_delivery, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlInsert = "INSERT INTO deliveries (id_pedido, codigo_delivery, plataforma, codigo_externo, direccion_entrega, referencia_entrega, costo_delivery, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlCodigo = "UPDATE deliveries SET codigo_delivery = ? WHERE id_delivery = ?";
 
         try (Connection con = ConexionBD.getConnection()) {
@@ -58,17 +57,18 @@ public class DeliveryDAOImpl implements DeliveryDAO {
                     ps.executeUpdate();
                 }
 
-                insertarSeguimiento(con, id, Delivery.SOLICITADO,
-                        descripcionInicial == null || descripcionInicial.trim().isEmpty()
+                insertarSeguimiento(con, id, Delivery.SOLICITADO, descripcionInicial == null || descripcionInicial.trim().isEmpty()
                                 ? "Delivery solicitado" : descripcionInicial.trim());
 
                 con.commit();
                 return id;
 
             } catch (SQLException e) {
+
                 con.rollback();
                 System.out.println("Error al registrar delivery: " + e.getMessage());
             } finally {
+
                 con.setAutoCommit(true);
             }
 
@@ -83,6 +83,7 @@ public class DeliveryDAOImpl implements DeliveryDAO {
     @Override
     public List<Delivery> listar() {
         List<Delivery> lista = new ArrayList<>();
+
         String sql = SELECT_DELIVERY + "ORDER BY id_delivery DESC";
 
         try (Connection con = ConexionBD.getConnection();
@@ -143,9 +144,7 @@ public class DeliveryDAOImpl implements DeliveryDAO {
         return null;
     }
 
-    // ==========================================
     // ACTUALIZAR ESTADO (delivery + seguimiento)
-    // ==========================================
 
     @Override
     public boolean actualizarEstado(int idDelivery, String nuevoEstado, String descripcion) {
@@ -186,9 +185,9 @@ public class DeliveryDAOImpl implements DeliveryDAO {
         return false;
     }
 
-    // ==========================================
-    // HISTORIAL DE SEGUIMIENTO
-    // ==========================================
+
+    //HISTORIAL DE SEGUIMIENTO
+
 
     @Override
     public List<SeguimientoDelivery> listarSeguimiento(int idDelivery) {
@@ -221,9 +220,7 @@ public class DeliveryDAOImpl implements DeliveryDAO {
         return lista;
     }
 
-    // ==========================================
     // AUXILIARES
-    // ==========================================
 
     private void insertarSeguimiento(Connection con, int idDelivery, String estado, String descripcion)
             throws SQLException {

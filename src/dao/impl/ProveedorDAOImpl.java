@@ -17,8 +17,7 @@ public class ProveedorDAOImpl implements ProveedorDAO {
     @Override
     public int insertar(Proveedor p) {
 
-        String sql = "INSERT INTO proveedores (nombre, ruc, telefono, direccion, productos, estado) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO proveedores (nombre, ruc, telefono, direccion, productos, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection con = ConexionBD.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -48,6 +47,7 @@ public class ProveedorDAOImpl implements ProveedorDAO {
     @Override
     public List<Proveedor> listar() {
         List<Proveedor> lista = new ArrayList<>();
+
         String sql = "SELECT * FROM proveedores ORDER BY id_proveedor";
 
         try (Connection con = ConexionBD.getConnection();
@@ -67,6 +67,7 @@ public class ProveedorDAOImpl implements ProveedorDAO {
 
     @Override
     public Proveedor buscarPorId(Integer id) {
+
         String sql = "SELECT * FROM proveedores WHERE id_proveedor = ?";
 
         try (Connection con = ConexionBD.getConnection();
@@ -90,8 +91,7 @@ public class ProveedorDAOImpl implements ProveedorDAO {
     @Override
     public boolean actualizar(Proveedor p) {
 
-        String sql = "UPDATE proveedores SET nombre = ?, ruc = ?, telefono = ?, direccion = ?, "
-                + "productos = ?, estado = ? WHERE id_proveedor = ?";
+        String sql = "UPDATE proveedores SET nombre = ?, ruc = ?, telefono = ?, direccion = ?, productos = ?, estado = ? WHERE id_proveedor = ?";
 
         try (Connection con = ConexionBD.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -115,6 +115,7 @@ public class ProveedorDAOImpl implements ProveedorDAO {
 
     @Override
     public boolean eliminar(Integer id) {
+
         String sql = "DELETE FROM proveedores WHERE id_proveedor = ?";
 
         try (Connection con = ConexionBD.getConnection();
@@ -153,6 +154,7 @@ public class ProveedorDAOImpl implements ProveedorDAO {
     }
 
     // Con ruc != null el primer parametro es el ruc y el segundo el id.
+
     private boolean consultarExiste(String sql, int id, String ruc) {
         try (Connection con = ConexionBD.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {

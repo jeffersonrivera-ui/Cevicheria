@@ -82,6 +82,7 @@ public class PlatosOperaciones {
         System.out.println("Precio: S/ " + plato.getPrecio());
         System.out.println("Estado: " + platoDAO.obtenerEstado(plato.getId()));
     }
+
     // BUSCAR PLATO Y DEVOLVER OBJETO
     public static Plato buscarPlatoObjeto(int idPlato) {
 

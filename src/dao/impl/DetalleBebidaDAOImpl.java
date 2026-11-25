@@ -208,10 +208,9 @@ public class DetalleBebidaDAOImpl implements DetalleBebidaDAO {
             return false;
         }
 
-        String sqlDetalle = "SELECT db.id_bebida, db.cantidad FROM detalle_bebida db " +
-                "INNER JOIN pedidos p ON db.id_pedido = p.id_pedido " +
-                "WHERE db.id_detalle_bebida = ? AND p.estado IN ('PENDIENTE', 'EN PREPARACION') " +
-                "AND NOT EXISTS (SELECT 1 FROM pagos pg WHERE pg.id_pedido = p.id_pedido) FOR UPDATE";
+        String sqlDetalle = "SELECT db.id_bebida, db.cantidad FROM detalle_bebida db INNER JOIN pedidos p ON db.id_pedido = p.id_pedido " +
+                "WHERE db.id_detalle_bebida = ? AND p.estado IN ('PENDIENTE', 'EN PREPARACION') AND NOT EXISTS (SELECT 1 FROM pagos pg WHERE pg.id_pedido = p.id_pedido) FOR UPDATE";
+
         String sqlStock = "SELECT stock FROM bebidas WHERE id_bebida = ? FOR UPDATE";
 
         try (Connection connection = ConexionBD.getConnection()) {
@@ -254,15 +253,13 @@ public class DetalleBebidaDAOImpl implements DetalleBebidaDAO {
                     return false;
                 }
 
-                try (PreparedStatement ps = connection.prepareStatement(
-                        "UPDATE detalle_bebida SET cantidad = ? WHERE id_detalle_bebida = ?")) {
+                try (PreparedStatement ps = connection.prepareStatement("UPDATE detalle_bebida SET cantidad = ? WHERE id_detalle_bebida = ?")) {
                     ps.setInt(1, cantidad);
                     ps.setInt(2, idDetalleBebida);
                     ps.executeUpdate();
                 }
 
-                try (PreparedStatement ps = connection.prepareStatement(
-                        "UPDATE bebidas SET stock = stock - ? WHERE id_bebida = ?")) {
+                try (PreparedStatement ps = connection.prepareStatement("UPDATE bebidas SET stock = stock - ? WHERE id_bebida = ?")) {
                     ps.setInt(1, diferencia);
                     ps.setInt(2, idBebida);
                     ps.executeUpdate();
@@ -312,14 +309,12 @@ public class DetalleBebidaDAOImpl implements DetalleBebidaDAO {
                     }
                 }
 
-                try (PreparedStatement ps = connection.prepareStatement(
-                        "DELETE FROM detalle_bebida WHERE id_detalle_bebida = ?")) {
+                try (PreparedStatement ps = connection.prepareStatement("DELETE FROM detalle_bebida WHERE id_detalle_bebida = ?")) {
                     ps.setInt(1, idDetalleBebida);
                     ps.executeUpdate();
                 }
 
-                try (PreparedStatement ps = connection.prepareStatement(
-                        "UPDATE bebidas SET stock = stock + ? WHERE id_bebida = ?")) {
+                try (PreparedStatement ps = connection.prepareStatement("UPDATE bebidas SET stock = stock + ? WHERE id_bebida = ?")) {
                     ps.setInt(1, cantidad);
                     ps.setInt(2, idBebida);
                     ps.executeUpdate();

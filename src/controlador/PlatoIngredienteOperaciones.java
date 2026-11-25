@@ -9,11 +9,9 @@ import java.util.List;
 
 public class PlatoIngredienteOperaciones {
 
-    private static final PlatoIngredienteDAO recetaDAO =
-            new PlatoIngredienteDAOImpl();
+    private static final PlatoIngredienteDAO recetaDAO = new PlatoIngredienteDAOImpl();
 
-    public static void registrarIngredientePlato(
-            int idPlato, int idIngrediente, double cantidad) {
+    public static void registrarIngredientePlato(int idPlato, int idIngrediente, double cantidad) {
 
         if (idPlato <= 0 || idIngrediente <= 0) {
             System.out.println("Los ID deben ser mayores que cero.");
@@ -29,14 +27,12 @@ public class PlatoIngredienteOperaciones {
                 recetaDAO.insertar(idPlato, idIngrediente, cantidad);
 
         if (registrado) {
-            System.out.println(
-                    "Ingrediente agregado a la receta correctamente.");
+            System.out.println("Ingrediente agregado a la receta correctamente.");
 
             PlatosOperaciones.actualizarDisponibilidadPlatos();
 
         } else {
-            System.out.println(
-                    "No se pudo agregar. Verifique los ID o si el ingrediente ya pertenece a la receta.");
+            System.out.println("No se pudo agregar. Verifique los ID o si el ingrediente ya pertenece a la receta.");
         }
     }
 
@@ -47,8 +43,7 @@ public class PlatoIngredienteOperaciones {
             return;
         }
 
-        List<PlatoIngrediente> lista =
-                recetaDAO.listarPorPlato(idPlato);
+        List<PlatoIngrediente> lista = recetaDAO.listarPorPlato(idPlato);
 
         System.out.println("====== INGREDIENTES DE LA RECETA ======");
 
@@ -61,24 +56,14 @@ public class PlatoIngredienteOperaciones {
         for (PlatoIngrediente relacion : lista) {
 
             System.out.println("-------------------------");
-            System.out.println("ID ingrediente: "
-                    + relacion.getIngrediente().getId());
-
-            System.out.println("Ingrediente: "
-                    + relacion.getIngrediente().getNombre());
-
-            System.out.println("Cantidad necesaria: "
-                    + relacion.getCantidad() + " "
-                    + relacion.getIngrediente().getUnidad());
-
-            System.out.println("Stock disponible: "
-                    + relacion.getIngrediente().getStock() + " "
-                    + relacion.getIngrediente().getUnidad());
+            System.out.println("ID ingrediente: " + relacion.getIngrediente().getId());
+            System.out.println("Ingrediente: " + relacion.getIngrediente().getNombre());
+            System.out.println("Cantidad necesaria: " + relacion.getCantidad() + " " + relacion.getIngrediente().getUnidad());
+            System.out.println("Stock disponible: " + relacion.getIngrediente().getStock() + " " + relacion.getIngrediente().getUnidad());
         }
     }
 
-    public static void actualizarCantidadIngrediente(
-            int idPlato, int idIngrediente, double cantidad) {
+    public static void actualizarCantidadIngrediente(int idPlato, int idIngrediente, double cantidad) {
 
         if (idPlato <= 0 || idIngrediente <= 0) {
             System.out.println("Los ID deben ser mayores que cero.");
@@ -90,9 +75,7 @@ public class PlatoIngredienteOperaciones {
             return;
         }
 
-        boolean actualizado =
-                recetaDAO.actualizarCantidad(
-                        idPlato, idIngrediente, cantidad);
+        boolean actualizado = recetaDAO.actualizarCantidad(idPlato, idIngrediente, cantidad);
 
         if (actualizado) {
             System.out.println("Cantidad actualizada correctamente.");
@@ -100,31 +83,26 @@ public class PlatoIngredienteOperaciones {
             PlatosOperaciones.actualizarDisponibilidadPlatos();
 
         } else {
-            System.out.println(
-                    "No se pudo actualizar. Verifique la receta o si el plato tiene pedidos con inventario descontado.");
+            System.out.println("No se pudo actualizar. Verifique la receta o si el plato tiene pedidos con inventario descontado.");
         }
     }
 
-    public static void eliminarIngredientePlato(
-            int idPlato, int idIngrediente) {
+    public static void eliminarIngredientePlato(int idPlato, int idIngrediente) {
 
         if (idPlato <= 0 || idIngrediente <= 0) {
             System.out.println("Los ID deben ser mayores que cero.");
             return;
         }
 
-        boolean eliminado =
-                recetaDAO.eliminar(idPlato, idIngrediente);
+        boolean eliminado = recetaDAO.eliminar(idPlato, idIngrediente);
 
         if (eliminado) {
-            System.out.println(
-                    "Ingrediente eliminado de la receta correctamente.");
+            System.out.println("Ingrediente eliminado de la receta correctamente.");
 
             PlatosOperaciones.actualizarDisponibilidadPlatos();
 
         } else {
-            System.out.println(
-                    "No se pudo eliminar. Verifique la receta, los pedidos y las personalizaciones.");
+            System.out.println("No se pudo eliminar. Verifique la receta, los pedidos y las personalizaciones.");
         }
     }
 }

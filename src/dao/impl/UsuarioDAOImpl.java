@@ -46,7 +46,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     @Override
     public Usuario buscarPorNombreUsuario(String nombreUsuario) {
 
-        String sql = "SELECT u.id_usuario, u.id_empleado, " +
+        String sql = "SELECT u.id_usuario, u.id_empleado," +
                 "u.nombre_usuario, u.password_hash, u.estado, " +
                 "e.cargo, e.estado_laboral " +
                 "FROM usuarios u " +
@@ -84,12 +84,11 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return null;
     }
 
-    private static final String SELECT_USUARIO =
-            "SELECT u.id_usuario, u.id_empleado, u.nombre_usuario, u.password_hash, u.estado, " +
-            "e.cargo, e.estado_laboral, CONCAT(e.nombres, ' ', e.apellidos) AS empleado " +
+    private static final String SELECT_USUARIO = "SELECT u.id_usuario, u.id_empleado, u.nombre_usuario, u.password_hash, u.estado, e.cargo, e.estado_laboral, CONCAT(e.nombres, ' ', e.apellidos) AS empleado " +
             "FROM usuarios u INNER JOIN empleados e ON u.id_empleado = e.id_empleado ";
 
     private Usuario crearUsuario(ResultSet rs) throws Exception {
+
         Usuario u = new Usuario(
                 rs.getInt("id_usuario"),
                 rs.getInt("id_empleado"),
@@ -104,10 +103,14 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public Usuario buscarPorId(int idUsuario) {
+
         String sql = SELECT_USUARIO + "WHERE u.id_usuario = ?";
+
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
+
             ps.setInt(1, idUsuario);
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return crearUsuario(rs);
@@ -121,14 +124,18 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public List<Usuario> listar() {
+
         List<Usuario> lista = new ArrayList<>();
+
         String sql = SELECT_USUARIO + "ORDER BY u.id_usuario";
+
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 lista.add(crearUsuario(rs));
             }
+
         } catch (Exception e) {
             System.out.println("Error al listar usuarios: " + e.getMessage());
         }
@@ -137,8 +144,11 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public boolean actualizarPassword(int idUsuario, String passwordHash) {
+
         String sql = "UPDATE usuarios SET password_hash = ? WHERE id_usuario = ?";
+
         try (Connection cn = ConexionBD.getConnection();
+
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, passwordHash);
             ps.setInt(2, idUsuario);
@@ -151,7 +161,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public boolean actualizarEstado(int idUsuario, String estado) {
+
         String sql = "UPDATE usuarios SET estado = ? WHERE id_usuario = ?";
+
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, estado);
@@ -165,7 +177,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public boolean eliminar(int idUsuario) {
+
         String sql = "DELETE FROM usuarios WHERE id_usuario = ?";
+
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idUsuario);
