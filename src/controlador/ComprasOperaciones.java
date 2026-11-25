@@ -5,6 +5,7 @@ import dao.impl.CompraDAOImpl;
 
 import java.util.List;
 import java.util.Map;
+import modelo.Proveedor;
 
 public class ComprasOperaciones {
 
@@ -16,7 +17,7 @@ public class ComprasOperaciones {
 
         if (idProveedor != null) {
 
-            modelo.Proveedor proveedor = ProveedorOperaciones.buscarProveedor(idProveedor);
+            Proveedor proveedor = ProveedorOperaciones.buscarProveedor(idProveedor);
             if (proveedor == null) {
                 System.out.println("El proveedor no existe.");
                 return -1;
